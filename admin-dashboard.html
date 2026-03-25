@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
+
 <body class="admin-body">
     <!-- Admin Navbar -->
     <nav class="admin-navbar">
@@ -209,13 +211,16 @@
 
                     <div class="form-group">
                         <label for="carEquipamentos">Equipamentos (um por linha)</label>
-                        <textarea id="carEquipamentos" rows="6" placeholder="Ar condicionado&#10;Direção assistida&#10;Vidros elétricos&#10;..."></textarea>
+                        <textarea id="carEquipamentos" rows="6"
+                            placeholder="Ar condicionado&#10;Direção assistida&#10;Vidros elétricos&#10;..."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="carImagens">URLs das Imagens (uma por linha) *</label>
-                        <textarea id="carImagens" rows="4" required placeholder="https://exemplo.com/imagem1.jpg&#10;https://exemplo.com/imagem2.jpg"></textarea>
-                        <small>Cole os URLs das imagens, um por linha (mínimo 1 imagem)</small>
+                        <label for="carImagens">Imagens da Viatura *</label>
+                        <input type="file" id="carImagens" accept="image/*" multiple required>
+                        <small>Selecione uma ou várias imagens da viatura</small>
+
+                        <div id="imagePreviewContainer" class="image-preview-container"></div>
                     </div>
 
                     <div class="form-group">
@@ -239,4 +244,5 @@
     <script src="js/data.js"></script>
     <script src="js/admin.js"></script>
 </body>
+
 </html>

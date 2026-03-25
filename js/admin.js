@@ -2,6 +2,9 @@
 // Painel de Administração
 // ===================================
 
+let selectedImages = [];
+let existingImages = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     // Verificar autenticação
     checkAuthentication();
@@ -11,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initNavigation();
     initCarManagement();
     initCarForm();
+    initImageUpload();
 });
 
 // ===================================
@@ -168,6 +172,81 @@ function filterCarsTable(searchTerm) {
 }
 
 // ===================================
+// Upload e Preview de Imagens
+// ===================================
+
+function initImageUpload() {
+    const imageInput = document.getElementById('carImagens');
+    if (!imageInput) return;
+
+    imageInput.addEventListener('change', handleImageSelection);
+}
+
+function handleImageSelection(event) {
+    const files = Array.from(event.target.files);
+    const previewContainer = document.getElementById('imagePreviewContainer');
+
+    selectedImages = [];
+    previewContainer.innerHTML = '';
+
+    if (!files.length) {
+        renderImagePreviews(existingImages);
+        return;
+    }
+
+    let processedCount = 0;
+
+    files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+            processedCount++;
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            selectedImages.push(e.target.result);
+            processedCount++;
+
+            if (processedCount === files.length) {
+                renderImagePreviews(selectedImages);
+            }
+        };
+
+        reader.onerror = function() {
+            processedCount++;
+            if (processedCount === files.length) {
+                renderImagePreviews(selectedImages);
+            }
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderImagePreviews(images) {
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    if (!previewContainer) return;
+
+    previewContainer.innerHTML = '';
+
+    images.forEach((img, index) => {
+        const previewItem = document.createElement('div');
+        previewItem.className = 'image-preview-item';
+        previewItem.innerHTML = `
+            <img src="${img}" alt="Imagem ${index + 1}">
+        `;
+        previewContainer.appendChild(previewItem);
+    });
+}
+
+function loadExistingImages(images) {
+    existingImages = Array.isArray(images) ? images : [];
+    selectedImages = [];
+    renderImagePreviews(existingImages);
+}
+
+// ===================================
 // Editar Carro
 // ===================================
 
@@ -193,8 +272,10 @@ function editCar(carId) {
     document.getElementById('carEstado').value = car.estado;
     document.getElementById('carDescricao').value = car.descricao;
     document.getElementById('carEquipamentos').value = car.equipamentos ? car.equipamentos.join('\n') : '';
-    document.getElementById('carImagens').value = car.imagens.join('\n');
+    document.getElementById('carImagens').value = '';
     document.getElementById('carDestaque').checked = car.destaque || false;
+
+    loadExistingImages(car.imagens);
 
     // Scroll para o topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -245,11 +326,10 @@ function saveCarForm() {
     const estado = document.getElementById('carEstado').value;
     const descricao = document.getElementById('carDescricao').value.trim();
     const equipamentosText = document.getElementById('carEquipamentos').value.trim();
-    const imagensText = document.getElementById('carImagens').value.trim();
     const destaque = document.getElementById('carDestaque').checked;
 
     // Validação básica
-    if (!marca || !modelo || !ano || !preco || !combustivel || !caixa || !quilometros || !potencia || !cor || !descricao || !imagensText) {
+    if (!marca || !modelo || !ano || !preco || !combustivel || !caixa || !quilometros || !potencia || !cor || !descricao) {
         showFormMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
         return;
     }
@@ -260,11 +340,7 @@ function saveCarForm() {
         .map(e => e.trim())
         .filter(e => e.length > 0);
 
-    // Processar imagens (separar por linha)
-    const imagens = imagensText
-        .split('\n')
-        .map(i => i.trim())
-        .filter(i => i.length > 0);
+    const imagens = selectedImages.length > 0 ? selectedImages : existingImages;
 
     if (imagens.length === 0) {
         showFormMessage('É necessário adicionar pelo menos uma imagem.', 'error');
@@ -304,6 +380,7 @@ function saveCarForm() {
     setTimeout(() => {
         resetForm();
         goToSection('cars');
+        loadCarsTable();
         updateDashboardStats();
     }, 1500);
 }
@@ -312,6 +389,15 @@ function resetForm() {
     document.getElementById('carForm').reset();
     document.getElementById('carId').value = '';
     document.getElementById('carFormTitle').textContent = 'Adicionar Novo Carro';
+
+    selectedImages = [];
+    existingImages = [];
+
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+    }
+
     hideFormMessage();
 }
 
