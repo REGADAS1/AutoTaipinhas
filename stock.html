@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock - AutoStand Premium</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <h2>AutoStand <span>Premium</span></h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="stock.html" class="active">Stock</a></li>
+                    <li><a href="about.html">Sobre Nós</a></li>
+                    <li><a href="contact.html">Contactos</a></li>
+                    <li><a href="location.html">Localização</a></li>
+                    <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>O Nosso Stock</h1>
+            <p>Explore a nossa seleção de veículos premium</p>
+        </div>
+    </section>
+
+    <!-- Filtros e Pesquisa -->
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters-wrapper">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Pesquisar marca, modelo...">
+                </div>
+
+                <button class="toggle-filters-btn" id="toggleFilters">
+                    <span>Filtros</span>
+                    <span id="filterCount" class="filter-count"></span>
+                </button>
+
+                <div class="filters-container" id="filtersContainer">
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label>Marca</label>
+                            <select id="filterMarca">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Modelo</label>
+                            <select id="filterModelo">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Combustível</label>
+                            <select id="filterCombustivel">
+                                <option value="">Todos</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Elétrico">Elétrico</option>
+                                <option value="Híbrido">Híbrido</option>
+                                <option value="GPL">GPL</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Caixa</label>
+                            <select id="filterCaixa">
+                                <option value="">Todas</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Automática">Automática</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Preço Mínimo (€)</label>
+                            <input type="number" id="filterPrecoMin" placeholder="0">
+                        </div>
+                        <div class="filter-group">
+                            <label>Preço Máximo (€)</label>
+                            <input type="number" id="filterPrecoMax" placeholder="100000">
+                        </div>
+                        <div class="filter-group">
+                            <label>Ano Mínimo</label>
+                            <input type="number" id="filterAnoMin" placeholder="2000">
+                        </div>
+                        <div class="filter-group">
+                            <label>Ano Máximo</label>
+                            <input type="number" id="filterAnoMax" placeholder="2024">
+                        </div>
+                        <div class="filter-group">
+                            <label>Km Máximo</label>
+                            <input type="number" id="filterKmMax" placeholder="200000">
+                        </div>
+                    </div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary" id="clearFilters">Limpar Filtros</button>
+                        <button class="btn btn-primary" id="applyFilters">Aplicar Filtros</button>
+                    </div>
+                </div>
+
+                <div class="sort-options">
+                    <label>Ordenar por:</label>
+                    <select id="sortBy">
+                        <option value="recent">Mais Recentes</option>
+                        <option value="price-asc">Preço: Menor ao Maior</option>
+                        <option value="price-desc">Preço: Maior ao Menor</option>
+                        <option value="year-desc">Ano: Mais Recente</option>
+                        <option value="year-asc">Ano: Mais Antigo</option>
+                        <option value="km-asc">Quilómetros: Menos ao Mais</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="results-info">
+                <p id="resultsCount">A carregar...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lista de Carros -->
+    <section class="stock-section">
+        <div class="container">
+            <div class="cars-grid" id="stockGrid">
+                <!-- Carros serão inseridos via JavaScript -->
+            </div>
+            <div id="noResults" class="no-results" style="display: none;">
+                <h3>Nenhum carro encontrado</h3>
+                <p>Tente ajustar os filtros ou pesquisa</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>AutoStand Premium</h3>
+                    <p>O seu parceiro de confiança na compra do carro ideal.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Facebook</a>
+                        <a href="#" class="social-link">Instagram</a>
+                        <a href="#" class="social-link">WhatsApp</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="stock.html">Stock</a></li>
+                        <li><a href="about.html">Sobre Nós</a></li>
+                        <li><a href="contact.html">Contactos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contactos</h4>
+                    <ul>
+                        <li>📞 +351 912 345 678</li>
+                        <li>📧 geral@autostandpremium.pt</li>
+                        <li>📍 Rua das Flores, 123, Lisboa</li>
+                        <li>🕐 Seg-Sex: 9h-19h | Sáb: 9h-13h</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Newsletter</h4>
+                    <p>Receba as nossas novidades</p>
+                    <form class="newsletter-form" onsubmit="return false;">
+                        <input type="email" placeholder="O seu email">
+                        <button type="submit" class="btn btn-primary">Subscrever</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AutoStand Premium. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botão Voltar ao Topo -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <script src="js/data.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

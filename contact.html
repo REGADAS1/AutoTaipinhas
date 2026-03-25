@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactos - AutoStand Premium</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <h2>AutoStand <span>Premium</span></h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="stock.html">Stock</a></li>
+                    <li><a href="about.html">Sobre Nós</a></li>
+                    <li><a href="contact.html" class="active">Contactos</a></li>
+                    <li><a href="location.html">Localização</a></li>
+                    <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1>Contacte-nos</h1>
+            <p>Estamos aqui para ajudar. Entre em contacto connosco</p>
+        </div>
+    </section>
+
+    <!-- Contactos -->
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <!-- Formulário -->
+                <div class="contact-form-wrapper">
+                    <h2>Envie-nos uma Mensagem</h2>
+                    <p>Preencha o formulário e entraremos em contacto brevemente</p>
+
+                    <form id="contactForm" class="contact-form">
+                        <div class="form-group">
+                            <label for="name">Nome Completo *</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Telefone *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="subject">Assunto</label>
+                            <select id="subject" name="subject">
+                                <option value="info">Pedido de Informação</option>
+                                <option value="visit">Agendar Visita</option>
+                                <option value="financing">Financiamento</option>
+                                <option value="trade">Retoma</option>
+                                <option value="other">Outro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="message">Mensagem *</label>
+                            <textarea id="message" name="message" rows="6" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" required>
+                                <span>Concordo com a Política de Privacidade *</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-large">Enviar Mensagem</button>
+                    </form>
+
+                    <div id="formMessage" class="form-message"></div>
+                </div>
+
+                <!-- Informações de Contacto -->
+                <div class="contact-info-wrapper">
+                    <h2>Informações de Contacto</h2>
+
+                    <div class="contact-info-cards">
+                        <div class="contact-info-card">
+                            <div class="contact-icon">📍</div>
+                            <h3>Morada</h3>
+                            <p>Rua das Flores, 123<br>1200-001 Lisboa<br>Portugal</p>
+                        </div>
+
+                        <div class="contact-info-card">
+                            <div class="contact-icon">📞</div>
+                            <h3>Telefone</h3>
+                            <p>+351 912 345 678<br>+351 21 123 4567</p>
+                            <a href="tel:+351912345678" class="btn btn-outline btn-small">Ligar Agora</a>
+                        </div>
+
+                        <div class="contact-info-card">
+                            <div class="contact-icon">📧</div>
+                            <h3>Email</h3>
+                            <p>geral@autostandpremium.pt<br>vendas@autostandpremium.pt</p>
+                            <a href="mailto:geral@autostandpremium.pt" class="btn btn-outline btn-small">Enviar Email</a>
+                        </div>
+
+                        <div class="contact-info-card">
+                            <div class="contact-icon">🕐</div>
+                            <h3>Horário</h3>
+                            <p><strong>Segunda a Sexta:</strong> 9h00 - 19h00<br>
+                               <strong>Sábado:</strong> 9h00 - 13h00<br>
+                               <strong>Domingo:</strong> Encerrado</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-social">
+                        <h3>Redes Sociais</h3>
+                        <div class="social-buttons">
+                            <a href="#" class="social-btn facebook">Facebook</a>
+                            <a href="#" class="social-btn instagram">Instagram</a>
+                            <a href="https://wa.me/351912345678" target="_blank" class="social-btn whatsapp">WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mapa Preview -->
+    <section class="map-preview-section">
+        <div class="container">
+            <div class="map-preview">
+                <div class="map-placeholder">
+                    <h3>📍 Como Chegar</h3>
+                    <p>Rua das Flores, 123 - Lisboa</p>
+                    <a href="location.html" class="btn btn-primary">Ver no Mapa</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>AutoStand Premium</h3>
+                    <p>O seu parceiro de confiança na compra do carro ideal.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Facebook</a>
+                        <a href="#" class="social-link">Instagram</a>
+                        <a href="#" class="social-link">WhatsApp</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="stock.html">Stock</a></li>
+                        <li><a href="about.html">Sobre Nós</a></li>
+                        <li><a href="contact.html">Contactos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contactos</h4>
+                    <ul>
+                        <li>📞 +351 912 345 678</li>
+                        <li>📧 geral@autostandpremium.pt</li>
+                        <li>📍 Rua das Flores, 123, Lisboa</li>
+                        <li>🕐 Seg-Sex: 9h-19h | Sáb: 9h-13h</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Newsletter</h4>
+                    <p>Receba as nossas novidades</p>
+                    <form class="newsletter-form" onsubmit="return false;">
+                        <input type="email" placeholder="O seu email">
+                        <button type="submit" class="btn btn-primary">Subscrever</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AutoStand Premium. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botão Voltar ao Topo -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Validação e envio do formulário
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const message = document.getElementById('message').value;
+
+            if (!name || !email || !phone || !message) {
+                showFormMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            // Simular envio (em produção, aqui faria uma chamada à API)
+            setTimeout(() => {
+                showFormMessage('Mensagem enviada com sucesso! Entraremos em contacto em breve.', 'success');
+                document.getElementById('contactForm').reset();
+            }, 1000);
+        });
+
+        function showFormMessage(message, type) {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `form-message ${type}`;
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

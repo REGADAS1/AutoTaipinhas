@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - AutoStand Premium</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+    <!-- Admin Navbar -->
+    <nav class="admin-navbar">
+        <div class="admin-nav-content">
+            <div class="admin-logo">
+                <h2>AutoStand <span>Admin</span></h2>
+            </div>
+            <div class="admin-nav-actions">
+                <a href="index.html" target="_blank" class="btn btn-outline btn-small">Ver Site</a>
+                <button id="logoutBtn" class="btn btn-danger btn-small">Sair</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Admin Container -->
+    <div class="admin-container">
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar">
+            <ul class="admin-menu">
+                <li><a href="#" class="active" data-section="dashboard">📊 Dashboard</a></li>
+                <li><a href="#" data-section="cars">🚗 Gerir Carros</a></li>
+                <li><a href="#" data-section="add-car">➕ Adicionar Carro</a></li>
+            </ul>
+        </aside>
+
+        <!-- Admin Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="admin-section active">
+                <div class="admin-header">
+                    <h1>Dashboard</h1>
+                    <p>Bem-vindo ao painel de administração</p>
+                </div>
+
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">🚗</div>
+                        <div class="stat-info">
+                            <h3 id="totalCars">0</h3>
+                            <p>Total de Carros</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3 id="availableCars">0</h3>
+                            <p>Disponíveis</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔒</div>
+                        <div class="stat-info">
+                            <h3 id="reservedCars">0</h3>
+                            <p>Reservados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✔️</div>
+                        <div class="stat-info">
+                            <h3 id="soldCars">0</h3>
+                            <p>Vendidos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-quick-actions">
+                    <h2>Ações Rápidas</h2>
+                    <div class="quick-actions-grid">
+                        <button class="quick-action-btn" onclick="goToSection('add-car')">
+                            <span class="action-icon">➕</span>
+                            <span>Adicionar Novo Carro</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="goToSection('cars')">
+                            <span class="action-icon">📝</span>
+                            <span>Gerir Carros</span>
+                        </button>
+                        <button class="quick-action-btn" onclick="window.open('index.html', '_blank')">
+                            <span class="action-icon">🌐</span>
+                            <span>Ver Site Público</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cars Management Section -->
+            <section id="cars-section" class="admin-section">
+                <div class="admin-header">
+                    <h1>Gerir Carros</h1>
+                    <button class="btn btn-primary" onclick="goToSection('add-car')">➕ Adicionar Novo</button>
+                </div>
+
+                <div class="admin-search">
+                    <input type="text" id="adminSearchInput" placeholder="Pesquisar carros...">
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagem</th>
+                                <th>Marca</th>
+                                <th>Modelo</th>
+                                <th>Ano</th>
+                                <th>Preço</th>
+                                <th>Estado</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carsTableBody">
+                            <!-- Carros serão inseridos aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Add/Edit Car Section -->
+            <section id="add-car-section" class="admin-section">
+                <div class="admin-header">
+                    <h1 id="carFormTitle">Adicionar Novo Carro</h1>
+                    <button class="btn btn-secondary" onclick="goToSection('cars')">← Voltar</button>
+                </div>
+
+                <form id="carForm" class="admin-form">
+                    <input type="hidden" id="carId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carMarca">Marca *</label>
+                            <input type="text" id="carMarca" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carModelo">Modelo *</label>
+                            <input type="text" id="carModelo" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carAno">Ano *</label>
+                            <input type="number" id="carAno" min="1990" max="2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carPreco">Preço (€) *</label>
+                            <input type="number" id="carPreco" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carCombustivel">Combustível *</label>
+                            <select id="carCombustivel" required>
+                                <option value="">Selecione</option>
+                                <option value="Gasolina">Gasolina</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Elétrico">Elétrico</option>
+                                <option value="Híbrido">Híbrido</option>
+                                <option value="GPL">GPL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="carCaixa">Caixa *</label>
+                            <select id="carCaixa" required>
+                                <option value="">Selecione</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Automática">Automática</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carQuilometros">Quilómetros *</label>
+                            <input type="number" id="carQuilometros" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carPotencia">Potência (CV) *</label>
+                            <input type="number" id="carPotencia" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carCor">Cor *</label>
+                            <input type="text" id="carCor" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="carEstado">Estado *</label>
+                            <select id="carEstado" required>
+                                <option value="Disponível">Disponível</option>
+                                <option value="Reservado">Reservado</option>
+                                <option value="Vendido">Vendido</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carDescricao">Descrição *</label>
+                        <textarea id="carDescricao" rows="5" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carEquipamentos">Equipamentos (um por linha)</label>
+                        <textarea id="carEquipamentos" rows="6" placeholder="Ar condicionado&#10;Direção assistida&#10;Vidros elétricos&#10;..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="carImagens">URLs das Imagens (uma por linha) *</label>
+                        <textarea id="carImagens" rows="4" required placeholder="https://exemplo.com/imagem1.jpg&#10;https://exemplo.com/imagem2.jpg"></textarea>
+                        <small>Cole os URLs das imagens, um por linha (mínimo 1 imagem)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="carDestaque">
+                            <span>Marcar como destaque na homepage</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">Guardar Carro</button>
+                        <button type="button" class="btn btn-secondary btn-large" onclick="resetForm()">Limpar</button>
+                    </div>
+                </form>
+
+                <div id="carFormMessage" class="form-message"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

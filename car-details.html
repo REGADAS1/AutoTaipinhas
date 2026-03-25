@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Carro - AutoStand Premium</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <h2>AutoStand <span>Premium</span></h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="stock.html">Stock</a></li>
+                    <li><a href="about.html">Sobre Nós</a></li>
+                    <li><a href="contact.html">Contactos</a></li>
+                    <li><a href="location.html">Localização</a></li>
+                    <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Detalhes do Carro -->
+    <section class="car-details-section">
+        <div class="container">
+            <a href="stock.html" class="back-link">← Voltar ao Stock</a>
+
+            <div id="carDetailsContent">
+                <!-- Conteúdo será inserido via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Carros Semelhantes -->
+    <section class="similar-cars-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Carros Semelhantes</h2>
+            </div>
+            <div class="cars-grid" id="similarCars">
+                <!-- Carros semelhantes serão inseridos via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>AutoStand Premium</h3>
+                    <p>O seu parceiro de confiança na compra do carro ideal.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Facebook</a>
+                        <a href="#" class="social-link">Instagram</a>
+                        <a href="#" class="social-link">WhatsApp</a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="stock.html">Stock</a></li>
+                        <li><a href="about.html">Sobre Nós</a></li>
+                        <li><a href="contact.html">Contactos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contactos</h4>
+                    <ul>
+                        <li>📞 +351 912 345 678</li>
+                        <li>📧 geral@autostandpremium.pt</li>
+                        <li>📍 Rua das Flores, 123, Lisboa</li>
+                        <li>🕐 Seg-Sex: 9h-19h | Sáb: 9h-13h</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Newsletter</h4>
+                    <p>Receba as nossas novidades</p>
+                    <form class="newsletter-form" onsubmit="return false;">
+                        <input type="email" placeholder="O seu email">
+                        <button type="submit" class="btn btn-primary">Subscrever</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 AutoStand Premium. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Botão Voltar ao Topo -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Carregar detalhes do carro
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const carId = urlParams.get('id');
+
+            if (!carId) {
+                window.location.href = 'stock.html';
+                return;
+            }
+
+            const car = getCar(carId);
+            if (!car) {
+                window.location.href = 'stock.html';
+                return;
+            }
+
+            displayCarDetails(car);
+            displaySimilarCars(car);
+        });
+
+        function displayCarDetails(car) {
+            const content = document.getElementById('carDetailsContent');
+
+            const statusBadge = getStatusBadge(car.estado);
+
+            content.innerHTML = `
+                <div class="car-details-grid">
+                    <div class="car-gallery">
+                        <div class="main-image">
+                            <img src="${car.imagens[0]}" alt="${car.marca} ${car.modelo}" id="mainImage">
+                            ${statusBadge}
+                        </div>
+                        <div class="thumbnail-gallery">
+                            ${car.imagens.map((img, index) => `
+                                <img src="${img}" alt="Imagem ${index + 1}"
+                                     class="thumbnail ${index === 0 ? 'active' : ''}"
+                                     onclick="changeMainImage('${img}', this)">
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="car-info">
+                        <h1>${car.marca} ${car.modelo}</h1>
+                        <div class="car-price">${formatPrice(car.preco)}</div>
+
+                        <div class="car-specs-grid">
+                            <div class="spec-item">
+                                <span class="spec-label">Ano</span>
+                                <span class="spec-value">${car.ano}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Quilómetros</span>
+                                <span class="spec-value">${formatKm(car.quilometros)}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Combustível</span>
+                                <span class="spec-value">${car.combustivel}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Caixa</span>
+                                <span class="spec-value">${car.caixa}</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Potência</span>
+                                <span class="spec-value">${car.potencia} CV</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Cor</span>
+                                <span class="spec-value">${car.cor}</span>
+                            </div>
+                        </div>
+
+                        <div class="contact-buttons">
+                            <a href="contact.html" class="btn btn-primary btn-large">Pedir Informações</a>
+                            <a href="https://wa.me/351912345678?text=Olá, tenho interesse no ${car.marca} ${car.modelo}"
+                               target="_blank" class="btn btn-success btn-large">WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="car-description-section">
+                    <h2>Descrição</h2>
+                    <p>${car.descricao}</p>
+                </div>
+
+                ${car.equipamentos && car.equipamentos.length > 0 ? `
+                    <div class="car-features-section">
+                        <h2>Equipamentos e Opcionais</h2>
+                        <div class="features-grid">
+                            ${car.equipamentos.map(eq => `
+                                <div class="feature-item">
+                                    <span class="feature-icon">✓</span>
+                                    <span>${eq}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function changeMainImage(imageSrc, thumbnail) {
+            document.getElementById('mainImage').src = imageSrc;
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+
+        function displaySimilarCars(currentCar) {
+            const allCars = getAllCars();
+            const similar = allCars
+                .filter(car => car.id !== currentCar.id && car.estado === 'Disponível')
+                .filter(car => car.marca === currentCar.marca ||
+                              Math.abs(car.preco - currentCar.preco) < 5000)
+                .slice(0, 3);
+
+            const container = document.getElementById('similarCars');
+            container.innerHTML = similar.map(car => createCarCard(car)).join('');
+        }
+    </script>
+</body>
+</html>
