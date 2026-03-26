@@ -1,3 +1,14 @@
+window.addEventListener('load', function () {
+    const loader = document.getElementById('pageLoader');
+
+    if (!loader) return;
+
+    setTimeout(() => {
+        loader.classList.add('hidden');
+    }, 1500);
+});
+
+
 // ===================================
 // Script Principal do Site Público
 // ===================================
