@@ -2,13 +2,22 @@
 // Sistema de Filtros e Pesquisa
 // ===================================
 
-document.addEventListener('DOMContentLoaded', function() {
+import {
+    getAllCars,
+    getUniqueBrands,
+    getModelsByBrand,
+    createCarCard
+} from './data.js';
+
+
+
+document.addEventListener('DOMContentLoaded', async function() {
     // Verificar se estamos na página de stock
     if (document.getElementById('stockGrid')) {
         initFilters();
         initSearch();
         initSort();
-        loadStockCars();
+        await loadStockCars();
     }
 });
 
@@ -31,9 +40,9 @@ let currentSort = 'recent';
 // Inicializar Filtros
 // ===================================
 
-function initFilters() {
+async function initFilters() {
     // Popular select de marcas
-    populateBrandSelect();
+    await populateBrandSelect();
 
     // Toggle filtros em mobile
     const toggleBtn = document.getElementById('toggleFilters');
@@ -80,11 +89,11 @@ function initFilters() {
 // Popular Selects
 // ===================================
 
-function populateBrandSelect() {
+async function populateBrandSelect() {
     const select = document.getElementById('filterMarca');
     if (!select) return;
 
-    const brands = getUniqueBrands();
+    const brands = await getUniqueBrands();
     brands.forEach(brand => {
         const option = document.createElement('option');
         option.value = brand;
@@ -93,7 +102,7 @@ function populateBrandSelect() {
     });
 }
 
-function populateModelSelect(brand) {
+async function populateModelSelect(brand) {
     const select = document.getElementById('filterModelo');
     if (!select) return;
 
@@ -101,7 +110,7 @@ function populateModelSelect(brand) {
     select.innerHTML = '<option value="">Todos</option>';
 
     if (brand) {
-        const models = getModelsByBrand(brand);
+        const models = await getModelsByBrand(brand);
         models.forEach(model => {
             const option = document.createElement('option');
             option.value = model;
@@ -235,8 +244,8 @@ function initSort() {
 // Carregar e Exibir Carros
 // ===================================
 
-function loadStockCars() {
-    let cars = getAllCars();
+async function loadStockCars() {
+    let cars = await getAllCars();
 
     // Aplicar filtros
     cars = cars.filter(car => {

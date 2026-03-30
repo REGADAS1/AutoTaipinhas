@@ -1,3 +1,5 @@
+import { getFeaturedCars, createCarCard } from './data.js';
+
 window.addEventListener('load', function () {
     const loader = document.getElementById('pageLoader');
 
@@ -13,11 +15,11 @@ window.addEventListener('load', function () {
 // Script Principal do Site Público
 // ===================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Inicializar componentes comuns
     initNavbar();
     initBackToTop();
-    initHomepage();
+    await initHomepage();
 });
 
 // ===================================
@@ -101,11 +103,11 @@ function initBackToTop() {
 // Homepage - Carros em Destaque
 // ===================================
 
-function initHomepage() {
+async function initHomepage() {
     const featuredContainer = document.getElementById('featuredCars');
 
     if (featuredContainer) {
-        const featuredCars = getFeaturedCars();
+        const featuredCars = await getFeaturedCars();
 
         if (featuredCars.length > 0) {
             featuredContainer.innerHTML = featuredCars.map(car => createCarCard(car)).join('');
@@ -234,5 +236,5 @@ function removeLoadingState(button) {
 // Console Info
 // ===================================
 
-console.log('%c AutoStand Premium ', 'background: #2c3e50; color: #3498db; font-size: 20px; font-weight: bold; padding: 10px;');
-console.log('%c Website desenvolvido com HTML, CSS e JavaScript puro ', 'background: #ecf0f1; color: #2c3e50; font-size: 12px; padding: 5px;');
+console.log('%c AutoTaipinhas ', 'background: #2c3e50; color: #3498db; font-size: 20px; font-weight: bold; padding: 10px;');
+

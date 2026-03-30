@@ -1,282 +1,259 @@
-// ===================================
-// Sistema de Gestão de Dados com localStorage
-// ===================================
-
-// Carros de exemplo pré-carregados
-const DEMO_CARS = [
-    {
-        id: '1',
-        marca: 'BMW',
-        modelo: '320d',
-        ano: 2020,
-        preco: 28500,
-        combustivel: 'Diesel',
-        caixa: 'Automática',
-        quilometros: 45000,
-        potencia: 190,
-        cor: 'Preto',
-        estado: 'Disponível',
-        destaque: true,
-        descricao: 'BMW 320d em excelente estado de conservação. Totalmente revisto e com histórico completo de manutenções. Único dono, não fumador. Veículo muito bem estimado e pronto a usar. Todos os extras de série incluídos. Garantia de stand incluída no preço.',
-        equipamentos: [
-            'Navegação GPS',
-            'Sensores de estacionamento',
-            'Câmara de marcha-atrás',
-            'Ar condicionado automático',
-            'Bancos em pele',
-            'Vidros elétricos',
-            'Direção assistida',
-            'Computador de bordo',
-            'Controlo de cruzeiro',
-            'Sistema de som premium'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/3802510/pexels-photo-3802510.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    },
-    {
-        id: '2',
-        marca: 'Mercedes-Benz',
-        modelo: 'Classe A 180',
-        ano: 2021,
-        preco: 32000,
-        combustivel: 'Gasolina',
-        caixa: 'Automática',
-        quilometros: 28000,
-        potencia: 136,
-        cor: 'Branco',
-        estado: 'Disponível',
-        destaque: true,
-        descricao: 'Mercedes-Benz Classe A 180 em estado impecável. Viatura como nova, sempre seguida em oficina autorizada. Livre de acidentes e com garantia de origem. Interior em perfeito estado, sem qualquer desgaste. Uma oportunidade única de adquirir qualidade premium.',
-        equipamentos: [
-            'Sistema MBUX',
-            'Câmara 360°',
-            'Estofos em pele',
-            'Teto panorâmico',
-            'Luzes LED',
-            'Jantes de liga leve 18"',
-            'Park assist',
-            'Keyless entry',
-            'Controlo de velocidade adaptativo',
-            'Apple CarPlay / Android Auto'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/3874337/pexels-photo-3874337.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/3802102/pexels-photo-3802102.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/3764984/pexels-photo-3764984.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    },
-    {
-        id: '3',
-        marca: 'Audi',
-        modelo: 'A4 Avant',
-        ano: 2019,
-        preco: 26900,
-        combustivel: 'Diesel',
-        caixa: 'Manual',
-        quilometros: 68000,
-        potencia: 150,
-        cor: 'Cinzento',
-        estado: 'Disponível',
-        destaque: true,
-        descricao: 'Audi A4 Avant 2.0 TDI, versão carrinha com enorme espaço de bagageira. Ideal para família ou profissionais. Motor diesel económico e fiável. Manutenções sempre em dia na rede oficial Audi. Pneus novos e travões revistos recentemente.',
-        equipamentos: [
-            'MMI Navigation Plus',
-            'Virtual Cockpit',
-            'Matrix LED',
-            'Sensores de estacionamento',
-            'Assistente de faixa de rodagem',
-            'Cruise control',
-            'Bluetooth',
-            'USB / AUX',
-            'Airbags completos',
-            'ESP e ABS'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/707046/pexels-photo-707046.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/3802508/pexels-photo-3802508.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/244206/pexels-photo-244206.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    },
-    {
-        id: '4',
-        marca: 'Volkswagen',
-        modelo: 'Golf 1.6 TDI',
-        ano: 2018,
-        preco: 17500,
-        combustivel: 'Diesel',
-        caixa: 'Manual',
-        quilometros: 95000,
-        potencia: 115,
-        cor: 'Azul',
-        estado: 'Disponível',
-        destaque: false,
-        descricao: 'Volkswagen Golf 1.6 TDI, o clássico que nunca falha. Motor diesel robusto e económico, perfeito para o dia a dia. Muito bem conservado e sempre tratado. Documentação em dia e pronto a usar. Aceita retoma e possibilidade de financiamento.',
-        equipamentos: [
-            'Ar condicionado',
-            'Rádio com Bluetooth',
-            'Computador de bordo',
-            'Vidros elétricos',
-            'Fechos centralizados',
-            'ABS e ESP',
-            'Airbags frontais e laterais',
-            'Direção assistida',
-            'Jantes de liga leve',
-            'Luzes de nevoeiro'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/1638459/pexels-photo-1638459.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/3802102/pexels-photo-3802102.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    },
-    {
-        id: '5',
-        marca: 'Renault',
-        modelo: 'Clio 1.5 dCi',
-        ano: 2017,
-        preco: 12900,
-        combustivel: 'Diesel',
-        caixa: 'Manual',
-        quilometros: 112000,
-        potencia: 90,
-        cor: 'Vermelho',
-        estado: 'Disponível',
-        destaque: false,
-        descricao: 'Renault Clio 1.5 dCi económico e fiável. Perfeito para quem procura um carro prático e com baixos consumos. Ideal para cidade e viagens. Revisões sempre efetuadas em oficina credenciada. IUC baixo e seguro acessível.',
-        equipamentos: [
-            'Ar condicionado',
-            'Direção assistida',
-            'Vidros elétricos',
-            'Rádio CD',
-            'Computador de bordo',
-            'ABS',
-            'Airbags',
-            'Retrovisores elétricos',
-            'Isofix',
-            'Travão de mão eletrónico'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/1077785/pexels-photo-1077785.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/707046/pexels-photo-707046.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/1149831/pexels-photo-1149831.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    },
-    {
-        id: '6',
-        marca: 'Tesla',
-        modelo: 'Model 3',
-        ano: 2022,
-        preco: 45000,
-        combustivel: 'Elétrico',
-        caixa: 'Automática',
-        quilometros: 18000,
-        potencia: 283,
-        cor: 'Branco',
-        estado: 'Reservado',
-        destaque: true,
-        descricao: 'Tesla Model 3 Long Range, o futuro da mobilidade elétrica. Autonomia superior a 500km. Tecnologia de ponta com Autopilot incluído. Carregamento em SuperChargers Tesla. Zero emissões e custos de manutenção mínimos. Como novo, com garantia de fábrica ainda ativa.',
-        equipamentos: [
-            'Autopilot',
-            'Ecrã tátil 15"',
-            'Carregamento rápido',
-            'Sistema de som premium',
-            'Conectividade total',
-            'Atualizações OTA',
-            'Vidros panorâmicos',
-            'Bancos aquecidos',
-            'Câmaras 360°',
-            'Keyless entry'
-        ],
-        imagens: [
-            'https://images.pexels.com/photos/13861/IMG_3496bfree.jpg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/11383663/pexels-photo-11383663.jpeg?auto=compress&cs=tinysrgb&w=800',
-            'https://images.pexels.com/photos/15435263/pexels-photo-15435263.jpeg?auto=compress&cs=tinysrgb&w=800'
-        ]
-    }
-];
+import { supabase } from './supabase.js';
 
 // ===================================
-// Funções de Gestão do localStorage
+// Mapeamentos
 // ===================================
 
-// Inicializar dados se não existirem
-function initializeData() {
-    if (!localStorage.getItem('autostand_cars')) {
-        localStorage.setItem('autostand_cars', JSON.stringify(DEMO_CARS));
-    }
-}
-
-// Obter todos os carros
-function getAllCars() {
-    initializeData();
-    const cars = localStorage.getItem('autostand_cars');
-    return cars ? JSON.parse(cars) : [];
-}
-
-// Obter um carro específico por ID
-function getCar(id) {
-    const cars = getAllCars();
-    return cars.find(car => car.id === id);
-}
-
-// Obter carros em destaque
-function getFeaturedCars() {
-    const cars = getAllCars();
-    return cars.filter(car => car.destaque && car.estado === 'Disponível').slice(0, 3);
-}
-
-// Adicionar novo carro
-function addCar(carData) {
-    const cars = getAllCars();
-    const newCar = {
-        ...carData,
-        id: Date.now().toString()
+function formatEstadoFromDb(estado) {
+    const map = {
+        disponivel: 'Disponível',
+        reservado: 'Reservado',
+        vendido: 'Vendido'
     };
-    cars.push(newCar);
-    localStorage.setItem('autostand_cars', JSON.stringify(cars));
-    return newCar;
+
+    return map[estado] || estado;
 }
 
-// Atualizar carro existente
-function updateCar(id, carData) {
-    const cars = getAllCars();
-    const index = cars.findIndex(car => car.id === id);
-    if (index !== -1) {
-        cars[index] = { ...cars[index], ...carData, id };
-        localStorage.setItem('autostand_cars', JSON.stringify(cars));
-        return true;
+function formatEstadoToDb(estado) {
+    const map = {
+        'Disponível': 'disponivel',
+        'Reservado': 'reservado',
+        'Vendido': 'vendido',
+        disponivel: 'disponivel',
+        reservado: 'reservado',
+        vendido: 'vendido'
+    };
+
+    return map[estado] || 'disponivel';
+}
+
+function mapDbCarToUi(car) {
+    return {
+        id: String(car.car_id),
+        marca: car.marca,
+        modelo: car.modelo,
+        ano: car.ano,
+        preco: Number(car.preco),
+        combustivel: car.combustivel,
+        caixa: car.transmissao,
+        quilometros: car.quilometros,
+        potencia: car.cavalos,
+        cor: car.cor,
+        estado: formatEstadoFromDb(car.estado),
+        destaque: car.destaque ?? false,
+        descricao: car.descricao,
+        equipamentos: car.equipamentos ?? [],
+        imagens: (car.imagens || []).map(img => img.url)
+    };
+}
+
+function formatTransmissaoToDb(transmissao) {
+    const map = {
+        'Manual': 'manual',
+        'Automática': 'automatica',
+        manual: 'manual',
+        automatica: 'automatica',
+        automática: 'automatica'
+    };
+
+    return map[transmissao] || 'manual';
+}
+
+function formatCombustivelToDb(combustivel) {
+    const map = {
+        'Gasolina': 'gasoline',
+        'Diesel': 'diesel',
+        'Elétrico': 'electric',
+        'Híbrido': 'hybrid',
+        'GPL': 'lpg',
+        gasoline: 'gasoline',
+        diesel: 'diesel',
+        electric: 'electric',
+        hybrid: 'hybrid',
+        lpg: 'lpg'
+    };
+
+    return map[combustivel] || combustivel?.toLowerCase();
+}
+
+function mapUiCarToDb(car) {
+    return {
+        marca: car.marca,
+        modelo: car.modelo,
+        ano: car.ano,
+        preco: car.preco,
+        combustivel: formatCombustivelToDb(car.combustivel),
+        transmissao: formatTransmissaoToDb(car.caixa),
+        quilometros: car.quilometros,
+        cavalos: car.potencia,
+        cilindrada: car.cilindrada ?? 0,
+        portas: car.portas ?? 5,
+        lugares: car.lugares ?? 5,
+        cor: car.cor,
+        estado: formatEstadoToDb(car.estado),
+        descricao: car.descricao,
+        destaque: car.destaque ?? false,
+        equipamentos: car.equipamentos ?? []
+    };
+}
+
+// ===================================
+// Queries principais
+// ===================================
+
+export async function getAllCars() {
+    const { data, error } = await supabase
+        .from('carros')
+        .select(`
+            *,
+            imagens (
+                image_id,
+                url
+            )
+        `)
+        .order('car_id', { ascending: false });
+
+    if (error) {
+        console.error('Erro ao obter carros:', error);
+        return [];
     }
-    return false;
+
+    return (data || []).map(mapDbCarToUi);
 }
 
-// Remover carro
-function deleteCar(id) {
-    const cars = getAllCars();
-    const filtered = cars.filter(car => car.id !== id);
-    localStorage.setItem('autostand_cars', JSON.stringify(filtered));
+export async function getCar(id) {
+    const { data, error } = await supabase
+        .from('carros')
+        .select(`
+            *,
+            imagens (
+                image_id,
+                url
+            )
+        `)
+        .eq('car_id', Number(id))
+        .single();
+
+    if (error) {
+        console.error('Erro ao obter carro:', error);
+        return null;
+    }
+
+    return mapDbCarToUi(data);
+}
+
+export async function getFeaturedCars() {
+    const { data, error } = await supabase
+        .from('carros')
+        .select(`
+            *,
+            imagens (
+                image_id,
+                url
+            )
+        `)
+        .eq('destaque', true)
+        .eq('estado', 'disponivel')
+        .limit(3);
+
+    if (error) {
+        console.error('Erro ao obter carros em destaque:', error);
+        return [];
+    }
+
+    return (data || []).map(mapDbCarToUi);
+}
+
+export async function addCar(carData) {
+    const dbCar = mapUiCarToDb(carData);
+
+    const { data, error } = await supabase
+        .from('carros')
+        .insert([dbCar])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Erro ao adicionar carro:', error);
+        return null;
+    }
+
+    return {
+        id: String(data.car_id)
+    };
+}
+
+export async function updateCar(id, carData) {
+    const dbCar = mapUiCarToDb(carData);
+
+    const { error } = await supabase
+        .from('carros')
+        .update(dbCar)
+        .eq('car_id', Number(id));
+
+    if (error) {
+        console.error('Erro ao atualizar carro:', error);
+        return false;
+    }
+
     return true;
 }
 
-// Obter estatísticas
-function getStats() {
-    const cars = getAllCars();
+export async function deleteCar(id) {
+    const { error } = await supabase
+        .from('carros')
+        .delete()
+        .eq('car_id', Number(id));
+
+    if (error) {
+        console.error('Erro ao eliminar carro:', error);
+        return false;
+    }
+
+    return true;
+}
+
+export async function getStats() {
+    const { data, error } = await supabase
+        .from('carros')
+        .select('estado');
+
+    if (error) {
+        console.error('Erro ao obter estatísticas:', error);
+        return {
+            total: 0,
+            disponivel: 0,
+            reservado: 0,
+            vendido: 0
+        };
+    }
+
     return {
-        total: cars.length,
-        disponivel: cars.filter(c => c.estado === 'Disponível').length,
-        reservado: cars.filter(c => c.estado === 'Reservado').length,
-        vendido: cars.filter(c => c.estado === 'Vendido').length
+        total: data.length,
+        disponivel: data.filter(car => car.estado === 'disponivel').length,
+        reservado: data.filter(car => car.estado === 'reservado').length,
+        vendido: data.filter(car => car.estado === 'vendido').length
     };
 }
 
+export async function sendMessage(messageData) {
+    const { error } = await supabase
+        .from('mensagens')
+        .insert([messageData]);
+
+    if (error) {
+        console.error('Erro ao enviar mensagem:', error);
+        return false;
+    }
+
+    return true;
+}
+
 // ===================================
-// Funções de Formatação e Utilidade
+// Utilitários
 // ===================================
 
-// Formatar preço
-function formatPrice(price) {
+export function formatPrice(price) {
     return new Intl.NumberFormat('pt-PT', {
         style: 'currency',
         currency: 'EUR',
@@ -285,30 +262,32 @@ function formatPrice(price) {
     }).format(price);
 }
 
-// Formatar quilómetros
-function formatKm(km) {
+export function formatKm(km) {
     return new Intl.NumberFormat('pt-PT').format(km) + ' km';
 }
 
-// Obter badge de estado
-function getStatusBadge(estado) {
+export function getStatusBadge(estado) {
     const badges = {
         'Disponível': '<span class="car-badge badge-disponivel">Disponível</span>',
         'Reservado': '<span class="car-badge badge-reservado">Reservado</span>',
         'Vendido': '<span class="car-badge badge-vendido">Vendido</span>'
     };
+
     return badges[estado] || '';
 }
 
-// Criar card de carro
-function createCarCard(car) {
-    const destaqueBadge = car.destaque ? '<span class="car-badge badge-destaque">Destaque</span>' : '';
+export function createCarCard(car) {
+    const destaqueBadge = car.destaque
+        ? '<span class="car-badge badge-destaque">Destaque</span>'
+        : '';
+
     const estadoBadge = getStatusBadge(car.estado);
+    const primeiraImagem = car.imagens?.[0] || 'https://via.placeholder.com/800x500?text=Sem+Imagem';
 
     return `
         <div class="car-card" onclick="window.location.href='car-details.html?id=${car.id}'">
             <div class="car-image">
-                <img src="${car.imagens[0]}" alt="${car.marca} ${car.modelo}">
+                <img src="${primeiraImagem}" alt="${car.marca} ${car.modelo}">
                 ${destaqueBadge}
                 ${estadoBadge}
             </div>
@@ -331,19 +310,19 @@ function createCarCard(car) {
     `;
 }
 
-// Obter marcas únicas
-function getUniqueBrands() {
-    const cars = getAllCars();
+export async function getUniqueBrands() {
+    const cars = await getAllCars();
     const brands = [...new Set(cars.map(car => car.marca))];
     return brands.sort();
 }
 
-// Obter modelos por marca
-function getModelsByBrand(brand) {
-    const cars = getAllCars();
-    const models = [...new Set(cars.filter(car => car.marca === brand).map(car => car.modelo))];
+export async function getModelsByBrand(brand) {
+    const cars = await getAllCars();
+    const models = [...new Set(
+        cars
+            .filter(car => car.marca === brand)
+            .map(car => car.modelo)
+    )];
+
     return models.sort();
 }
-
-// Inicializar dados ao carregar o script
-initializeData();

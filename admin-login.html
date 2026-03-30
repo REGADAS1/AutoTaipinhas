@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin - AutoStand Premium</title>
+    <title>Login Admin - Auto Taipinhas</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -11,19 +11,33 @@
     <div class="admin-login-container">
         <div class="admin-login-card">
             <div class="admin-login-header">
-                <h1>AutoStand <span>Premium</span></h1>
+                <h1>Auto <span>Taipinhas</span></h1>
                 <p>Área de Administração</p>
             </div>
 
             <form id="adminLoginForm" class="admin-login-form">
                 <div class="form-group">
-                    <label for="username">Utilizador</label>
-                    <input type="text" id="username" name="username" required autocomplete="username">
+                    <label for="username">Email</label>
+                    <input
+                        type="email"
+                        id="username"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        placeholder="admin@autotaipinhas.pt"
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="password">Palavra-passe</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        placeholder="Introduza a palavra-passe"
+                    >
                 </div>
 
                 <div class="form-group">
@@ -33,64 +47,28 @@
                     </label>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-large btn-block">Entrar</button>
+                <button type="submit" class="btn btn-primary btn-large btn-block" id="loginBtn">
+                    Entrar
+                </button>
             </form>
 
-            <div id="loginMessage" class="login-message"></div>
+            <div id="loginMessage" class="login-message" style="display: none;"></div>
 
             <div class="admin-login-footer">
                 <a href="index.html">← Voltar ao Site</a>
             </div>
 
             <div class="admin-login-info">
-                <p><small>💡 <strong>Credenciais de teste:</strong><br>
-                Utilizador: <code>admin</code><br>
-                Palavra-passe: <code>admin123</code></small></p>
+                <p>
+                    <small>
+                        🔐 <strong>Acesso reservado à administração</strong><br>
+                        Utilize as credenciais criadas no Supabase Auth.
+                    </small>
+                </p>
             </div>
         </div>
     </div>
 
-    <script>
-        // Verificar se já está autenticado
-        if (localStorage.getItem('adminAuthenticated') === 'true') {
-            window.location.href = 'admin-dashboard.html';
-        }
-
-        // Login do administrador
-        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-
-            // Validação simples (em produção, isto seria feito no servidor)
-            if (username === 'admin' && password === 'admin123') {
-                localStorage.setItem('adminAuthenticated', 'true');
-                if (rememberMe) {
-                    localStorage.setItem('adminRememberMe', 'true');
-                }
-                showMessage('Login efetuado com sucesso! A redirecionar...', 'success');
-                setTimeout(() => {
-                    window.location.href = 'admin-dashboard.html';
-                }, 1000);
-            } else {
-                showMessage('Utilizador ou palavra-passe incorretos.', 'error');
-            }
-        });
-
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('loginMessage');
-            messageDiv.textContent = message;
-            messageDiv.className = `login-message ${type}`;
-            messageDiv.style.display = 'block';
-
-            if (type === 'error') {
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 3000);
-            }
-        }
-    </script>
+    <script type="module" src="js/admin-login.js"></script>
 </body>
 </html>
