@@ -349,6 +349,7 @@ async function editCar(carId) {
         document.getElementById('carCaixa').value = car.caixa ?? '';
         document.getElementById('carQuilometros').value = car.quilometros ?? '';
         document.getElementById('carPotencia').value = car.potencia ?? '';
+        document.getElementById('carCilindrada').value = car.cilindrada ?? '';
         document.getElementById('carCor').value = car.cor ?? '';
         document.getElementById('carEstado').value = car.estado ?? '';
         document.getElementById('carDescricao').value = car.descricao ?? '';
@@ -427,6 +428,8 @@ async function saveCarForm() {
         const caixa = document.getElementById('carCaixa').value;
         const quilometros = parseInt(document.getElementById('carQuilometros').value, 10);
         const potencia = parseInt(document.getElementById('carPotencia').value, 10);
+        const cilindradaValue = document.getElementById('carCilindrada').value;
+        const cilindrada = cilindradaValue ? parseInt(cilindradaValue, 10) : null;
         const cor = document.getElementById('carCor').value.trim();
         const estado = document.getElementById('carEstado').value;
         const descricao = document.getElementById('carDescricao').value.trim();
@@ -471,6 +474,7 @@ async function saveCarForm() {
             caixa,
             quilometros,
             potencia,
+            cilindrada,
             cor,
             estado,
             descricao,

@@ -86,6 +86,10 @@ function displayCarDetails(car) {
                         <span class="spec-value">${car.potencia} CV</span>
                     </div>
                     <div class="spec-item">
+                        <span class="spec-label">Cilindrada</span>
+                        <span class="spec-value">${car.cilindrada} cc</span>
+                    </div>
+                    <div class="spec-item">
                         <span class="spec-label">Cor</span>
                         <span class="spec-value">${escapeHtml(car.cor)}</span>
                     </div>

@@ -38,6 +38,7 @@ function mapDbCarToUi(car) {
         caixa: car.transmissao,
         quilometros: car.quilometros,
         potencia: car.cavalos,
+        cilindrada: car.cilindrada,
         cor: car.cor,
         estado: formatEstadoFromDb(car.estado),
         destaque: car.destaque ?? false,
