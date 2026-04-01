@@ -949,6 +949,168 @@ a {
 /* ===================================
    Car Details
    =================================== */
+.main-image {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    cursor: zoom-in;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Lightbox / imagem ampliada */
+body.lightbox-open {
+    overflow: hidden;
+}
+
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-lightbox.active {
+    display: flex;
+}
+
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(2px);
+}
+
+.lightbox-content {
+    position: relative;
+    z-index: 2;
+    width: min(92vw, 1200px);
+    height: min(88vh, 900px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.lightbox-content img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+    user-select: none;
+}
+
+.lightbox-counter {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 3;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(4px);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    z-index: 3;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 30px;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: scale(1.05);
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 56px;
+    height: 56px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    transition: background 0.25s ease, transform 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.lightbox-prev {
+    left: 24px;
+}
+
+.lightbox-next {
+    right: 24px;
+}
+
+@media (max-width: 768px) {
+    .lightbox-content {
+        width: 100vw;
+        height: 100vh;
+        padding: 16px 60px;
+    }
+
+    .lightbox-nav {
+        width: 46px;
+        height: 46px;
+        font-size: 24px;
+    }
+
+    .lightbox-prev {
+        left: 10px;
+    }
+
+    .lightbox-next {
+        right: 10px;
+    }
+
+    .lightbox-close {
+        top: 12px;
+        right: 12px;
+        width: 42px;
+        height: 42px;
+        font-size: 26px;
+    }
+}
+
+
 .car-details-section {
     padding: 40px 0 80px;
 }
@@ -1430,6 +1592,72 @@ a {
     opacity: 0.9;
 }
 
+.location-section {
+    padding: 40px 0 20px;
+}
+
+.location-hero {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    height: 470px; /* ajusta aqui para ficar exatamente igual ao antigo */
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-map-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.location-map-bg iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    filter: blur(3px);
+    transform: scale(1.08);
+    pointer-events: none;
+}
+
+.location-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 35, 0.22);
+}
+
+.location-info-card {
+    position: relative;
+    z-index: 2;
+    width: min(520px, calc(100% - 48px));
+    background: rgba(15, 23, 35, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 42px 32px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.location-info-card h2 {
+    margin-bottom: 16px;
+    color: #fff;
+}
+
+.location-info-card p {
+    margin-bottom: 24px;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.location-pin {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
 .location-info-section {
     padding: 60px 0;
 }
@@ -1520,26 +1748,98 @@ a {
 }
 
 .landmarks-section {
-    padding: 60px 0;
+    padding: 80px 0;
 }
 
-.landmarks-list {
+.landmarks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 40px;
 }
 
-.landmark-item {
+.landmark-card {
+    background: #ffffff;
+    border: 1px solid #e7edf3;
+    border-radius: 20px;
+    padding: 28px 24px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 220px;
+}
+
+.landmark-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.10);
+    border-color: rgba(59, 130, 246, 0.22);
+}
+
+.landmark-icon-wrap {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.12), rgba(44, 62, 80, 0.10));
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background-color: var(--bg-light);
-    border-radius: 10px;
+    justify-content: center;
 }
 
 .landmark-icon {
-    font-size: 32px;
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.landmark-content h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin: 0 0 10px;
+    line-height: 1.35;
+}
+
+.landmark-content p {
+    margin: 0 0 16px;
+    color: #5f7187;
+    line-height: 1.6;
+    font-size: 0.98rem;
+}
+
+.landmark-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(52, 152, 219, 0.12);
+    color: #3498db;
+    font-size: 0.88rem;
+    font-weight: 700;
+    width: fit-content;
+}
+
+@media (max-width: 1100px) {
+    .landmarks-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .landmarks-section {
+        padding: 60px 0;
+    }
+
+    .landmarks-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .landmark-card {
+        min-height: auto;
+        padding: 22px 20px;
+    }
 }
 
 /* ===================================

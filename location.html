@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
@@ -41,13 +43,26 @@
     </section>
 
     <!-- Mapa -->
-    <section class="map-section">
-        <div class="map-container">
-            <div class="map-placeholder-large">
-                <div class="map-content">
-                    <h2>📍 Auto Taipinhas</h2>
+    <section class="location-section">
+        <div class="container">
+            <div class="location-hero">
+                <div class="location-map-bg">
+                    <iframe
+                        src="https://www.google.com/maps?q=Rua%20Escalheiro%20238,%204805-504%20Guimar%C3%A3es&z=16&output=embed"
+                        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
+                    </iframe>
+                </div>
+
+                <div class="location-overlay"></div>
+
+                <div class="location-info-card">
+                    <div class="location-pin">📍</div>
+                    <h2>Auto Taipinhas</h2>
                     <p>Rua Escalheiro 238, 4805-504 Guimarães</p>
-                    <a href="https://maps.app.goo.gl/x6E1nGhSicDvSzMS9" target="_blank" class="btn btn-primary">Abrir no Google Maps</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Rua+Escalheiro+238,+4805-504+Guimar%C3%A3es"
+                        target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        Abrir no Google Maps
+                    </a>
                 </div>
             </div>
         </div>
@@ -59,17 +74,17 @@
             <div class="location-grid">
                 <div class="location-card">
                     <div class="location-icon">📍</div>
-                    <h3>Morada Completa</h3>
+                    <h3>Morada</h3>
                     <p><strong>Auto Taipinhas</strong><br>
-                       Rua Escalheiro 238, 4805-504 Guimarães<br>
-                       Portugal</p>
+                        Rua Escalheiro 238, 4805-504 Guimarães<br>
+                        Portugal</p>
                 </div>
 
                 <div class="location-card">
                     <div class="location-icon">🕐</div>
                     <h3>Horário de Funcionamento</h3>
-                    <p><strong>Segunda a Sexta-feira:</strong><br>09h00 - 19h00</p>
-                    <p><strong>Sábado:</strong><br>09h00 - 13h00</p>
+                    <p><strong>Segunda a Sábado:</strong><br>09h00 - 12h00</p>
+                    <p>15h00 - 19h00</p>
                     <p><strong>Domingo:</strong><br>Encerrado</p>
                 </div>
 
@@ -89,35 +104,60 @@
 
 
     <!-- Referências -->
-    <section class="landmarks-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Pontos de Referência</h2>
-                <p>Estamos próximos de:</p>
-            </div>
-            <div class="landmarks-list">
-                <div class="landmark-item">
-                    <span class="landmark-icon">🏢</span>
-                    <span>EB 2/3 de Caldas das Taipas (mesmo em frente)</span>
-                    
-                </div>
-                <div class="landmark-item">
-                    <span class="landmark-icon">🏪</span>
-                    <span>Continente Bom Dia de Caldas das Taipas</span>
-                    <p>(1min)</p>
-                </div>
-                <div class="landmark-item">
-                    <span class="landmark-icon">🏪</span>
-                    <span>Intermarché de Caldas das Taipas</span>
-                    <p>(1min)</p>
-                </div>
-                <div class="landmark-item">
-                    <span class="landmark-icon">🏬</span>
-                    <span>Taipicostura, Comércio de Máquinas de Costura (mesmo ao lado)</span>
-                </div>
-            </div>
+<section class="landmarks-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Pontos de Referência</h2>
+            <p>Estamos próximos de vários locais de referência para facilitar a sua visita.</p>
         </div>
-    </section>
+
+        <div class="landmarks-grid">
+            <article class="landmark-card">
+                <div class="landmark-icon-wrap">
+                    <span class="landmark-icon">🏫</span>
+                </div>
+                <div class="landmark-content">
+                    <h3>EB 2/3 de Caldas das Taipas</h3>
+                    <p>Localizada mesmo em frente ao stand.</p>
+                    <span class="landmark-badge">Em frente</span>
+                </div>
+            </article>
+
+            <article class="landmark-card">
+                <div class="landmark-icon-wrap">
+                    <span class="landmark-icon">🛒</span>
+                </div>
+                <div class="landmark-content">
+                    <h3>Continente Bom Dia</h3>
+                    <p>Caldas das Taipas</p>
+                    <span class="landmark-badge">1 min</span>
+                </div>
+            </article>
+
+            <article class="landmark-card">
+                <div class="landmark-icon-wrap">
+                    <span class="landmark-icon">🛍️</span>
+                </div>
+                <div class="landmark-content">
+                    <h3>Intermarché</h3>
+                    <p>Caldas das Taipas</p>
+                    <span class="landmark-badge">1 min</span>
+                </div>
+            </article>
+
+            <article class="landmark-card">
+                <div class="landmark-icon-wrap">
+                    <span class="landmark-icon">🏬</span>
+                </div>
+                <div class="landmark-content">
+                    <h3>Taipicostura</h3>
+                    <p>Comércio de Máquinas de Costura, mesmo ao lado.</p>
+                    <span class="landmark-badge">Ao lado</span>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
 
     <!-- CTA -->
     <section class="cta-section">
@@ -165,17 +205,15 @@
                         <li>📞 +351 934 175 852</li>
                         <li>📧 fernandomvfreitas@sapo.pt</li>
                         <li>📍 Rua Escalheiro 238, 4805-504 Guimarães</li>
-                        <li>🕐 Seg-Sex: 9h-19h | Sáb: 9h-13h</li>
+                        <li>
+                            <p>
+                                🕖<strong> Segunda a Sábado:</strong><br>
+                                09h00 - 12h00 | 15h00 - 19h00
+                            </p>
+                        </li>
                     </ul>
                 </div>
-                <div class="footer-col">
-                    <h4>Newsletter</h4>
-                    <p>Receba as nossas novidades</p>
-                    <form class="newsletter-form" onsubmit="return false;">
-                        <input type="email" placeholder="O seu email">
-                        <button type="submit" class="btn btn-primary">Subscrever</button>
-                    </form>
-                </div>
+
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Auto Taipinhas. Todos os direitos reservados.</p>
@@ -189,4 +227,5 @@
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/filters.js"></script>
 </body>
+
 </html>

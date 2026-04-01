@@ -27,6 +27,29 @@ function formatEstadoToDb(estado) {
     return map[estado] || 'disponivel';
 }
 
+
+function formatTransmissaoFromDb(transmissao) {
+    const map = {
+        manual: 'Manual',
+        automatica: 'Automática',
+        automática: 'Automática'
+    };
+
+    return map[transmissao] || transmissao;
+}
+
+function formatCombustivelFromDb(combustivel) {
+    const map = {
+        gasoline: 'Gasolina',
+        diesel: 'Diesel',
+        electric: 'Elétrico',
+        hybrid: 'Híbrido',
+        lpg: 'GPL'
+    };
+
+    return map[combustivel] || combustivel;
+}
+
 function mapDbCarToUi(car) {
     return {
         id: String(car.car_id),
@@ -34,8 +57,8 @@ function mapDbCarToUi(car) {
         modelo: car.modelo,
         ano: car.ano,
         preco: Number(car.preco),
-        combustivel: car.combustivel,
-        caixa: car.transmissao,
+        combustivel: formatCombustivelFromDb(car.combustivel),
+caixa: formatTransmissaoFromDb(car.transmissao),
         quilometros: car.quilometros,
         potencia: car.cavalos,
         cilindrada: car.cilindrada,

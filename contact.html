@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contactos - AutoStand Premium</title>
+    <title>Contactos - Auto Taipinhas</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
@@ -116,24 +118,28 @@
                             <div class="contact-icon">📧</div>
                             <h3>Email</h3>
                             <p>fernandomvfreitas@sapo.pt<br></p>
-                            <a href="mailto:fernandomvfreitas@sapo.pt" class="btn btn-outline btn-small">Enviar Email</a>
+                            <a href="mailto:fernandomvfreitas@sapo.pt" class="btn btn-outline btn-small">Enviar
+                                Email</a>
                         </div>
 
                         <div class="contact-info-card">
                             <div class="contact-icon">🕐</div>
                             <h3>Horário</h3>
-                            <p><strong>Segunda a Sexta:</strong> 9h00 - 19h00<br>
-                               <strong>Sábado:</strong> 9h00 - 13h00<br>
-                               <strong>Domingo:</strong> Encerrado</p>
+                            <p>
+                                <strong>Segunda a Sábado:</strong> 09:00 - 12:00 / 15:00 - 19:00<br>
+                                <strong>Domingo:</strong> Encerrado
+                            </p>
                         </div>
                     </div>
 
                     <div class="contact-social">
                         <h3>Redes Sociais</h3>
                         <div class="social-buttons">
-                            <a href="https://www.facebook.com/p/AUTO-Taipinhas-61572832885088/" class="social-btn facebook">Facebook</a>
+                            <a href="https://www.facebook.com/p/AUTO-Taipinhas-61572832885088/"
+                                class="social-btn facebook">Facebook</a>
                             <a href="#" class="social-btn instagram">Instagram</a>
-                            <a href="https://wa.me/351934175852" target="_blank" class="social-btn whatsapp">WhatsApp</a>
+                            <a href="https://wa.me/351934175852" target="_blank"
+                                class="social-btn whatsapp">WhatsApp</a>
                         </div>
                     </div>
                 </div>
@@ -141,14 +147,27 @@
         </div>
     </section>
 
-    <!-- Mapa Preview -->
-    <section class="map-preview-section">
+    <!-- Mapa -->
+    <section class="location-section">
         <div class="container">
-            <div class="map-preview">
-                <div class="map-placeholder">
-                    <h3>📍 Como Chegar</h3>
+            <div class="location-hero">
+                <div class="location-map-bg">
+                    <iframe
+                        src="https://www.google.com/maps?q=Rua%20Escalheiro%20238,%204805-504%20Guimar%C3%A3es&z=16&output=embed"
+                        loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
+                    </iframe>
+                </div>
+
+                <div class="location-overlay"></div>
+
+                <div class="location-info-card">
+                    <div class="location-pin">📍</div>
+                    <h2>Auto Taipinhas</h2>
                     <p>Rua Escalheiro 238, 4805-504 Guimarães</p>
-                    <a href="location.html" class="btn btn-primary">Ver no Mapa</a>
+                    <a href="https://www.google.com/maps/search/?api=1&query=Rua+Escalheiro+238,+4805-504+Guimar%C3%A3es"
+                        target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        Abrir no Google Maps
+                    </a>
                 </div>
             </div>
         </div>
@@ -188,17 +207,13 @@
                         <li>📞 +351 934 175 852</li>
                         <li>📧 fernandomvfreitas@sapo.pt</li>
                         <li>📍 Rua Escalheiro 238, 4805-504 Guimarães</li>
-                        <li>🕐 Seg-Sex: 9h-19h | Sáb: 9h-13h</li>
+                        <li><p>
+                                🕖<strong> Segunda a Sábado:</strong><br>
+                                09h00 - 12h00 | 15h00 - 19h00
+                            </p></li>
                     </ul>
                 </div>
-                <div class="footer-col">
-                    <h4>Newsletter</h4>
-                    <p>Receba as nossas novidades</p>
-                    <form class="newsletter-form" onsubmit="return false;">
-                        <input type="email" placeholder="O seu email">
-                        <button type="submit" class="btn btn-primary">Subscrever</button>
-                    </form>
-                </div>
+                
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Auto Taipinhas. Todos os direitos reservados.</p>
@@ -212,7 +227,7 @@
     <script type="module" src="js/filters.js"></script>
     <script>
         // Validação e envio do formulário
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
+        document.getElementById('contactForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
             const name = document.getElementById('name').value;
@@ -244,4 +259,5 @@
         }
     </script>
 </body>
+
 </html>

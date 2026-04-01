@@ -146,7 +146,7 @@ function applyFilters() {
     loadStockCars();
 
     // Scroll para resultados
-    document.getElementById('stockGrid')?.scrollIntoView({ behavior: 'smooth' });
+    // document.getElementById('stockGrid')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 // ===================================

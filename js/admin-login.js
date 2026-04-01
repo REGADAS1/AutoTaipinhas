@@ -12,10 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function initLoginForm() {
-    const form = document.getElementById('loginForm');
-    const errorBox = document.getElementById('loginError');
+    const form = document.getElementById('adminLoginForm');
+    const errorBox = document.getElementById('loginMessage');
 
-    if (!form) return;
+    if (!form) {
+        console.error('Formulário de login não encontrado.');
+        return;
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -7,6 +7,9 @@ import {
     createCarCard
 } from './data.js';
 
+let currentImages = [];
+let currentImageIndex = 0;
+
 document.addEventListener('DOMContentLoaded', async function () {
     await loadCarDetails();
 });
@@ -40,6 +43,9 @@ function displayCarDetails(car) {
         ? car.imagens
         : ['https://via.placeholder.com/900x600?text=Sem+Imagem'];
 
+    currentImages = imagens;
+    currentImageIndex = 0;
+
     content.innerHTML = `
         <div class="car-details-grid">
             <div class="car-gallery">
@@ -55,6 +61,7 @@ function displayCarDetails(car) {
                             alt="Imagem ${index + 1}"
                             class="thumbnail ${index === 0 ? 'active' : ''}"
                             data-image="${img}"
+                            data-index="${index}"
                         >
                     `).join('')}
                 </div>
@@ -127,6 +134,8 @@ function displayCarDetails(car) {
     `;
 
     bindThumbnailGallery();
+    createImageLightbox();
+    bindMainImageClick();
 }
 
 function bindThumbnailGallery() {
@@ -135,14 +144,162 @@ function bindThumbnailGallery() {
 
     thumbnails.forEach(thumb => {
         thumb.addEventListener('click', function () {
+            const imageIndex = Number(this.dataset.index);
+
             if (mainImage) {
                 mainImage.src = this.dataset.image;
             }
+
+            currentImageIndex = imageIndex;
 
             thumbnails.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
         });
     });
+}
+
+function bindMainImageClick() {
+    const mainImage = document.getElementById('mainImage');
+    if (!mainImage) return;
+
+    mainImage.addEventListener('click', () => {
+        openLightbox(currentImageIndex);
+    });
+}
+
+function createImageLightbox() {
+    const existing = document.getElementById('imageLightbox');
+    if (existing) existing.remove();
+
+    const lightbox = document.createElement('div');
+    lightbox.id = 'imageLightbox';
+    lightbox.className = 'image-lightbox';
+    lightbox.innerHTML = `
+    <div class="lightbox-backdrop"></div>
+
+    <button class="lightbox-close" id="lightboxClose" aria-label="Fechar">
+        &times;
+    </button>
+
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Imagem anterior">
+        &#10094;
+    </button>
+
+    <div class="lightbox-content">
+        <img id="lightboxImage" src="" alt="Imagem ampliada">
+    </div>
+
+    <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+
+    <button class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Imagem seguinte">
+        &#10095;
+    </button>
+`;
+
+    document.body.appendChild(lightbox);
+
+    const closeBtn = document.getElementById('lightboxClose');
+    const prevBtn = document.getElementById('lightboxPrev');
+    const nextBtn = document.getElementById('lightboxNext');
+    const backdrop = lightbox.querySelector('.lightbox-backdrop');
+
+    closeBtn?.addEventListener('click', closeLightbox);
+    prevBtn?.addEventListener('click', showPreviousImage);
+    nextBtn?.addEventListener('click', showNextImage);
+    backdrop?.addEventListener('click', closeLightbox);
+
+    document.addEventListener('keydown', handleLightboxKeyboard);
+}
+
+function updateLightboxCounter() {
+    const counter = document.getElementById('lightboxCounter');
+    if (!counter) return;
+
+    counter.textContent = `${currentImageIndex + 1} / ${currentImages.length}`;
+}
+
+function openLightbox(index) {
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImage = document.getElementById('lightboxImage');
+
+    if (!lightbox || !lightboxImage || !currentImages.length) return;
+updateLightboxCounter();
+    currentImageIndex = index;
+    lightboxImage.src = currentImages[currentImageIndex];
+    lightbox.classList.add('active');
+    document.body.classList.add('lightbox-open');
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('imageLightbox');
+    if (!lightbox) return;
+
+    lightbox.classList.remove('active');
+    document.body.classList.remove('lightbox-open');
+}
+
+function showPreviousImage() {
+    if (!currentImages.length) return;
+
+    currentImageIndex =
+        currentImageIndex === 0
+            ? currentImages.length - 1
+            : currentImageIndex - 1;
+
+    updateLightboxImage();
+    updateActiveThumbnail();
+}
+
+function showNextImage() {
+    if (!currentImages.length) return;
+
+    currentImageIndex =
+        currentImageIndex === currentImages.length - 1
+            ? 0
+            : currentImageIndex + 1;
+
+    updateLightboxImage();
+    updateActiveThumbnail();
+}
+
+function updateLightboxImage() {
+    const lightboxImage = document.getElementById('lightboxImage');
+    const mainImage = document.getElementById('mainImage');
+
+    if (lightboxImage) {
+        lightboxImage.src = currentImages[currentImageIndex];
+    }
+
+    if (mainImage) {
+        mainImage.src = currentImages[currentImageIndex];
+    }
+
+    updateLightboxCounter();
+}
+
+function updateActiveThumbnail() {
+    const thumbnails = document.querySelectorAll('.thumbnail-gallery .thumbnail');
+
+    thumbnails.forEach((thumb, index) => {
+        thumb.classList.toggle('active', index === currentImageIndex);
+    });
+}
+
+function handleLightboxKeyboard(e) {
+    const lightbox = document.getElementById('imageLightbox');
+    if (!lightbox || !lightbox.classList.contains('active')) return;
+
+    if (e.key === 'Escape') {
+        closeLightbox();
+    }
+
+    if (e.key === 'ArrowLeft') {
+        showPreviousImage();
+    }
+
+    if (e.key === 'ArrowRight') {
+        showNextImage();
+    }
 }
 
 async function displaySimilarCars(currentCar) {
@@ -156,15 +313,17 @@ async function displaySimilarCars(currentCar) {
         )
         .slice(0, 3);
 
-    const container = document.getElementById('similarCars');
-    if (!container) return;
+    const similarCarsContainer = document.getElementById('similarCars');
+    if (!similarCarsContainer) return;
 
-    if (!similar.length) {
-        container.innerHTML = '<p>Sem viaturas semelhantes disponíveis.</p>';
+    if (similar.length === 0) {
+        similarCarsContainer.innerHTML = `
+            <p class="no-cars-message">Não existem carros semelhantes disponíveis de momento.</p>
+        `;
         return;
     }
 
-    container.innerHTML = similar.map(car => createCarCard(car)).join('');
+    similarCarsContainer.innerHTML = similar.map(car => createCarCard(car)).join('');
 }
 
 function renderNotFound() {
@@ -172,19 +331,21 @@ function renderNotFound() {
     if (!content) return;
 
     content.innerHTML = `
-        <div style="padding: 60px 20px; text-align: center;">
-            <h1>Carro não encontrado</h1>
-            <p>A viatura que procura não existe ou já não está disponível.</p>
-            <a href="stock.html" class="btn btn-primary">Voltar ao Stock</a>
+        <div class="no-cars-message">
+            <h2>Carro não encontrado</h2>
+            <p>O veículo que procura não existe ou já não está disponível.</p>
+            <a href="stock.html" class="btn btn-primary" style="margin-top: 20px;">
+                Ver Stock
+            </a>
         </div>
     `;
 }
 
 function escapeHtml(value) {
     return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
