@@ -207,13 +207,15 @@
                         <li>📞 +351 934 175 852</li>
                         <li>📧 fernandomvfreitas@sapo.pt</li>
                         <li>📍 Rua Escalheiro 238, 4805-504 Guimarães</li>
-                        <li><p>
+                        <li>
+                            <p>
                                 🕖<strong> Segunda a Sábado:</strong><br>
                                 09h00 - 12h00 | 15h00 - 19h00
-                            </p></li>
+                            </p>
+                        </li>
                     </ul>
                 </div>
-                
+
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Auto Taipinhas. Todos os direitos reservados.</p>
@@ -225,39 +227,8 @@
 
     <script type="module" src="js/main.js"></script>
     <script type="module" src="js/filters.js"></script>
-    <script>
-        // Validação e envio do formulário
-        document.getElementById('contactForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+    <script type="module" src="js/contact.js"></script>
 
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const message = document.getElementById('message').value;
-
-            if (!name || !email || !phone || !message) {
-                showFormMessage('Por favor, preencha todos os campos obrigatórios.', 'error');
-                return;
-            }
-
-            // Simular envio (em produção, aqui faria uma chamada à API)
-            setTimeout(() => {
-                showFormMessage('Mensagem enviada com sucesso! Entraremos em contacto em breve.', 'success');
-                document.getElementById('contactForm').reset();
-            }, 1000);
-        });
-
-        function showFormMessage(message, type) {
-            const messageDiv = document.getElementById('formMessage');
-            messageDiv.textContent = message;
-            messageDiv.className = `form-message ${type}`;
-            messageDiv.style.display = 'block';
-
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
-    </script>
 </body>
 
 </html>

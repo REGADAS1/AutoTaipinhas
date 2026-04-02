@@ -261,9 +261,18 @@ export async function getStats() {
 }
 
 export async function sendMessage(messageData) {
+    const payload = {
+        nome: messageData.nome ?? '',
+        email: messageData.email ?? '',
+        telefone: messageData.telefone ?? '',
+        assunto: messageData.assunto ?? '',
+        mensagem: messageData.mensagem ?? '',
+        origem: 'site-contactos'
+    };
+
     const { error } = await supabase
         .from('mensagens')
-        .insert([messageData]);
+        .insert([payload]);
 
     if (error) {
         console.error('Erro ao enviar mensagem:', error);
@@ -349,4 +358,54 @@ export async function getModelsByBrand(brand) {
     )];
 
     return models.sort();
+}
+
+
+// ===================================
+// Mensagens
+// ===================================
+
+export async function getMessages() {
+    const { data, error } = await supabase
+        .from('mensagens')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Erro ao carregar mensagens:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function markMessageAsRead(messageId) {
+    const { error } = await supabase
+        .from('mensagens')
+        .update({
+            lida: true,
+            lida_em: new Date().toISOString()
+        })
+        .eq('message_id', messageId);
+
+    if (error) {
+        console.error('Erro ao marcar mensagem como lida:', error);
+        return false;
+    }
+
+    return true;
+}
+
+export async function deleteMessage(messageId) {
+    const { error } = await supabase
+        .from('mensagens')
+        .delete()
+        .eq('message_id', messageId);
+
+    if (error) {
+        console.error('Erro ao eliminar mensagem:', error);
+        return false;
+    }
+
+    return true;
 }

@@ -28,7 +28,7 @@
                     <span>Ver Site</span>
                 </a>
 
-                
+
 
                 <button id="logoutBtn" class="btn btn-danger btn-small">
                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -43,7 +43,7 @@
         <!-- Admin Sidebar -->
         <aside class="admin-sidebar">
             <div class="admin-sidebar-header">
-                
+
             </div>
 
             <ul class="admin-menu">
@@ -63,6 +63,12 @@
                     <a href="#" data-section="add-car">
                         <i class="fa-solid fa-plus"></i>
                         <span>Adicionar Carro</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" data-section="messages">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Mensagens</span>
                     </a>
                 </li>
             </ul>
@@ -174,7 +180,7 @@
                             </div>
                         </div>
 
-                        
+
                     </div>
                 </section>
 
@@ -195,7 +201,8 @@
                     <div class="admin-toolbar">
                         <div class="admin-search">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="adminSearchInput" placeholder="Pesquisar carros por marca, modelo ou ano...">
+                            <input type="text" id="adminSearchInput"
+                                placeholder="Pesquisar carros por marca, modelo ou ano...">
                         </div>
                     </div>
 
@@ -318,7 +325,7 @@
                             </div>
 
                             <div class="form-row">
-                                
+
                                 <div class="form-group">
                                     <label for="carEstado">Estado *</label>
                                     <select id="carEstado" required>
@@ -385,6 +392,21 @@
                     </form>
 
                     <div id="carFormMessage" class="form-message"></div>
+                </section>
+
+                <section id="messages-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Mensagens Recebidas</h2>
+                        <p>Consulte e gira os contactos recebidos através do site.</p>
+                    </div>
+
+                    <div class="messages-toolbar">
+                        <button class="btn btn-secondary" id="refreshMessagesBtn">Atualizar</button>
+                    </div>
+
+                    <div id="messagesList" class="messages-list">
+                        <div class="loading-state">A carregar mensagens...</div>
+                    </div>
                 </section>
             </div>
         </main>

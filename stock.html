@@ -46,31 +46,35 @@
     <section class="filters-section">
         <div class="container">
             <div class="filters-wrapper">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Pesquisar marca, modelo...">
-                </div>
+                <div class="filters-topbar">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Pesquisar marca, modelo...">
+                    </div>
 
-                <button class="toggle-filters-btn" id="toggleFilters">
-                    <span>Filtros</span>
-                    <span id="filterCount" class="filter-count"></span>
-                </button>
+                    <button class="toggle-filters-btn" id="toggleFilters" type="button">
+                        <span>Filtros</span>
+                        <span id="filterCount" class="filter-count"></span>
+                    </button>
+                </div>
 
                 <div class="filters-container" id="filtersContainer">
                     <div class="filters-grid">
                         <div class="filter-group">
-                            <label>Marca</label>
+                            <label for="filterMarca">Marca</label>
                             <select id="filterMarca">
                                 <option value="">Todas</option>
                             </select>
                         </div>
+
                         <div class="filter-group">
-                            <label>Modelo</label>
+                            <label for="filterModelo">Modelo</label>
                             <select id="filterModelo">
                                 <option value="">Todos</option>
                             </select>
                         </div>
+
                         <div class="filter-group">
-                            <label>Combustível</label>
+                            <label for="filterCombustivel">Combustível</label>
                             <select id="filterCombustivel">
                                 <option value="">Todos</option>
                                 <option value="Gasolina">Gasolina</option>
@@ -80,51 +84,60 @@
                                 <option value="GPL">GPL</option>
                             </select>
                         </div>
+
                         <div class="filter-group">
-                            <label>Caixa</label>
+                            <label for="filterCaixa">Caixa</label>
                             <select id="filterCaixa">
                                 <option value="">Todas</option>
                                 <option value="Manual">Manual</option>
                                 <option value="Automática">Automática</option>
                             </select>
                         </div>
-                        <div class="filter-group">
-                            <label>Preço Mínimo (€)</label>
-                            <input type="number" id="filterPrecoMin" placeholder="0">
-                        </div>
-                        <div class="filter-group">
-                            <label>Preço Máximo (€)</label>
-                            <input type="number" id="filterPrecoMax" placeholder="100000">
-                        </div>
-                        <div class="filter-group">
-                            <label>Ano Mínimo</label>
-                            <input type="number" id="filterAnoMin" placeholder="2000">
-                        </div>
-                        <div class="filter-group">
-                            <label>Ano Máximo</label>
-                            <input type="number" id="filterAnoMax" placeholder="2024">
-                        </div>
-                        <div class="filter-group">
-                            <label>Km Máximo</label>
-                            <input type="number" id="filterKmMax" placeholder="200000">
-                        </div>
-                    </div>
-                    <div class="filters-actions">
-                        <button class="btn btn-secondary" id="clearFilters">Limpar Filtros</button>
-                        <button class="btn btn-primary" id="applyFilters">Aplicar Filtros</button>
-                    </div>
-                </div>
 
-                <div class="sort-options">
-                    <label>Ordenar por:</label>
-                    <select id="sortBy">
-                        <option value="recent">Mais Recentes</option>
-                        <option value="price-asc">Preço: Menor ao Maior</option>
-                        <option value="price-desc">Preço: Maior ao Menor</option>
-                        <option value="year-desc">Ano: Mais Recente</option>
-                        <option value="year-asc">Ano: Mais Antigo</option>
-                        <option value="km-asc">Quilómetros: Menos ao Mais</option>
-                    </select>
+                        <div class="filter-group">
+                            <label for="filterPrecoMin">Preço Mínimo (€)</label>
+                            <input type="number" id="filterPrecoMin" placeholder="ex. 0">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filterPrecoMax">Preço Máximo (€)</label>
+                            <input type="number" id="filterPrecoMax" placeholder="ex. 100000">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filterAnoMin">Ano Mínimo</label>
+                            <input type="number" id="filterAnoMin" placeholder="ex. 2000">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filterAnoMax">Ano Máximo</label>
+                            <input type="number" id="filterAnoMax" placeholder="ex. 2024">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filterKmMax">Km Máximo</label>
+                            <input type="number" id="filterKmMax" placeholder="ex. 200000">
+                        </div>
+                    </div>
+
+                    <div class="filters-footer">
+                        <div class="sort-options">
+                            <label for="sortBy">Ordenar por</label>
+                            <select id="sortBy">
+                                <option value="recent">Mais Recentes</option>
+                                <option value="price-asc">Preço: Menor ao Maior</option>
+                                <option value="price-desc">Preço: Maior ao Menor</option>
+                                <option value="year-desc">Ano: Mais Recente</option>
+                                <option value="year-asc">Ano: Mais Antigo</option>
+                                <option value="km-asc">Quilómetros: Menos ao Mais</option>
+                            </select>
+                        </div>
+
+                        <div class="filters-actions">
+                            <button class="btn btn-secondary" id="clearFilters" type="button">Limpar Filtros</button>
+                            <button class="btn btn-primary" id="applyFilters" type="button">Aplicar Filtros</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -181,13 +194,15 @@
                         <li>📞 +351 934 175 852</li>
                         <li>📧 fernandomvfreitas@sapo.pt</li>
                         <li>📍 Rua Escalheiro 238, 4805-504 Guimarães</li>
-                        <li><p>
+                        <li>
+                            <p>
                                 🕖<strong> Segunda a Sábado:</strong><br>
                                 09h00 - 12h00 | 15h00 - 19h00
-                            </p></li>
+                            </p>
+                        </li>
                     </ul>
                 </div>
-                
+
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 Auto Taipinhas. Todos os direitos reservados.</p>

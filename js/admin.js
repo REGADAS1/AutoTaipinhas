@@ -6,7 +6,10 @@ import {
     addCar,
     updateCar,
     deleteCar,
-    formatPrice
+    formatPrice,
+    getMessages,
+    markMessageAsRead,
+    deleteMessage
 } from './data.js';
 
 // ===================================
@@ -15,6 +18,7 @@ import {
 
 let selectedImages = [];
 let existingImages = [];
+let adminMessages = [];
 
 document.addEventListener('DOMContentLoaded', async function () {
     const isAuthenticated = await checkAuthentication();
@@ -26,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     initImageUpload();
     initCarManagement();
 
+    document.getElementById('refreshMessagesBtn')?.addEventListener('click', loadMessages);
+    initMessagesActions();
     await initAdminDashboard();
 });
 
@@ -119,6 +125,8 @@ function initNavigation() {
                     await loadCarsTable();
                 } else if (sectionName === 'add-car') {
                     hideFormMessage();
+                } else if (sectionName === 'messages') {
+                    await loadMessages();
                 }
             }
         });
@@ -635,6 +643,145 @@ function escapeHtml(value) {
 }
 
 // ===================================
+// Mensagens
+// ===================================
+
+async function loadMessages() {
+    const list = document.getElementById('messagesList');
+    if (!list) return;
+
+    list.innerHTML = `<div class="loading-state">A carregar mensagens...</div>`;
+
+    adminMessages = await getMessages();
+    console.log('Mensagens carregadas:', adminMessages);
+
+    if (!adminMessages.length) {
+        list.innerHTML = `<div class="empty-state">Ainda não existem mensagens recebidas.</div>`;
+        return;
+    }
+
+    list.innerHTML = adminMessages.map(message => `
+        <div class="message-card ${message.lida ? 'read' : 'unread'}">
+            <div class="message-card-header">
+                <div>
+                    <h3>${escapeHtml(message.nome)}</h3>
+                    <p>${escapeHtml(message.email)}</p>
+                </div>
+                <div class="message-status">
+                    ${message.lida
+            ? '<span class="status-badge read">Lida</span>'
+            : '<span class="status-badge unread">Nova</span>'}
+                </div>
+            </div>
+
+            <div class="message-card-body">
+                <p><strong>Telefone:</strong> ${escapeHtml(message.telefone)}</p>
+                <p><strong>Assunto:</strong> ${escapeHtml(message.assunto)}</p>
+                <p><strong>Recebida em:</strong> ${formatMessageDate(message.created_at)}</p>
+            </div>
+
+            <div class="message-card-actions">
+                <button class="btn btn-primary btn-sm" data-action="view-message" data-id="${message.message_id}">
+                    Ver
+                </button>
+                <button class="btn btn-secondary btn-sm" data-action="read-message" data-id="${message.message_id}">
+                    Marcar como lida
+                </button>
+                <button class="btn btn-danger btn-sm" data-action="delete-message" data-id="${message.message_id}">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function initMessagesActions() {
+    document.addEventListener('click', async (e) => {
+        const button = e.target.closest('[data-action]');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const messageId = Number(button.dataset.id);
+
+        if (!messageId) return;
+
+        if (action === 'view-message') {
+            const message = adminMessages.find(m => m.message_id === messageId);
+            if (!message) return;
+
+            showMessageModal(message);
+
+            if (!message.lida) {
+                await markMessageAsRead(messageId);
+                await loadMessages();
+            }
+        }
+
+        if (action === 'read-message') {
+            await markMessageAsRead(messageId);
+            await loadMessages();
+        }
+
+        if (action === 'delete-message') {
+            const confirmed = confirm('Tem a certeza que pretende eliminar esta mensagem?');
+            if (!confirmed) return;
+
+            await deleteMessage(messageId);
+            await loadMessages();
+        }
+    });
+}
+
+function showMessageModal(message) {
+    const existing = document.getElementById('messageModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'messageModal';
+    modal.className = 'custom-modal-overlay';
+
+    modal.innerHTML = `
+        <div class="custom-modal">
+            <button class="custom-modal-close" id="closeMessageModal">&times;</button>
+            <h2>Mensagem de ${escapeHtml(message.nome)}</h2>
+            <div class="custom-modal-content">
+                <p><strong>Email:</strong> ${escapeHtml(message.email)}</p>
+                <p><strong>Telefone:</strong> ${escapeHtml(message.telefone)}</p>
+                <p><strong>Assunto:</strong> ${escapeHtml(message.assunto)}</p>
+                <p><strong>Recebida em:</strong> ${formatMessageDate(message.created_at)}</p>
+                <hr>
+                <p><strong>Mensagem:</strong></p>
+                <p>${escapeHtml(message.mensagem).replace(/\n/g, '<br>')}</p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('closeMessageModal')?.addEventListener('click', () => {
+        modal.remove();
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+function formatMessageDate(dateString) {
+    if (!dateString) return '-';
+
+    return new Date(dateString).toLocaleString('pt-PT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ===================================
 // Animações CSS
 // ===================================
 
@@ -666,3 +813,5 @@ document.head.appendChild(style);
 
 console.log('%c Admin Panel Loaded ', 'background: #111827; color: #60a5fa; font-size: 16px; font-weight: bold; padding: 8px;');
 console.log('%c Sessão de administração Supabase ativa ', 'background: #16a34a; color: white; font-size: 12px; padding: 5px;');
+
+
