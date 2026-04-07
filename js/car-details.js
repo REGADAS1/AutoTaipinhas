@@ -104,7 +104,7 @@ function displayCarDetails(car) {
 
                 <div class="contact-buttons">
                     <a href="contact.html" class="btn btn-primary btn-large">Pedir Informações</a>
-                    <a href="https://wa.me/351912345678?text=${encodeURIComponent(`Olá, tenho interesse no ${car.marca} ${car.modelo}`)}"
+                    <a href="https://wa.me/351934175852?text=${encodeURIComponent(`Olá, tenho interesse no ${car.marca} ${car.modelo}`)}"
                        target="_blank"
                        class="btn btn-success btn-large">
                         WhatsApp
