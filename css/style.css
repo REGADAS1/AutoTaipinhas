@@ -1601,6 +1601,67 @@ body.lightbox-open {
 }
 
 /* ===================================
+   Brand Trip (Marcas)
+   =================================== */
+.brands-strip-section {
+    padding: 36px 0;
+    background: #f8f8f8;
+}
+
+.brands-strip {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    background: #f8f8f8;
+}
+
+.brands-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    will-change: transform;
+}
+
+.brand-logo-item {
+    flex: 0 0 140px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+}
+
+.brand-logo-item img {
+    max-width: 100px;
+    max-height: 52px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: grayscale(100%);
+    opacity: 0.55;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.brand-logo-item img:hover {
+    opacity: 0.85;
+    transform: scale(1.04);
+}
+
+@media (max-width: 768px) {
+    .brand-logo-item {
+        flex: 0 0 110px;
+        height: 72px;
+        padding: 0 10px;
+    }
+
+    .brand-logo-item img {
+        max-width: 78px;
+        max-height: 42px;
+    }
+}
+
+
+/* ===================================
    Botões dos contatos
    =================================== */
 .hero-social-buttons {
