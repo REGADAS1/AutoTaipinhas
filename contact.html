@@ -21,7 +21,7 @@
         <div class="container">
             <div class="nav-wrapper">
                 <a href="index.html" class="logo">
-                    <img src="/images/logo.png" alt="Auto Taipinhas" class="site-logo">
+                    <img src="/images/logo_vector.svg" alt="Auto Taipinhas" class="site-logo">
                 </a>
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="index.html">Página Inicial</a></li>
@@ -29,7 +29,7 @@
                     <li><a href="about.html">Sobre Nós</a></li>
                     <li><a href="contact.html" class="active">Contactos</a></li>
                     <li><a href="location.html">Localização</a></li>
-                    <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+                    <!-- <li><a href="admin-login.html" class="admin-link">Admin</a></li> --> <!-- Admin link is hidden on the homepage for better UX -->
                 </ul>
                 <div class="hamburger" id="hamburger">
                     <span></span>
@@ -96,6 +96,17 @@
                             </label>
                         </div>
 
+                        <div style="position:absolute; left:-9999px; opacity:0; pointer-events:none;" aria-hidden="true">
+                            <label for="website">Website</label>
+                            <input
+                                type="text"
+                                id="website"
+                                name="website"
+                                tabindex="-1"
+                                autocomplete="off"
+                            >
+                        </div>
+                        
                         <button type="submit" class="btn btn-primary btn-large">Enviar Mensagem</button>
                     </form>
 

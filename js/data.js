@@ -1,5 +1,7 @@
 import { supabase } from './supabase.js';
 
+
+const STORAGE_BUCKET = 'car-images';
 // ===================================
 // Mapeamentos
 // ===================================
@@ -50,7 +52,30 @@ function formatCombustivelFromDb(combustivel) {
     return map[combustivel] || combustivel;
 }
 
+function resolveImageUrl(imageRow) {
+    if (!imageRow) return '';
+
+    if (imageRow.url && typeof imageRow.url === 'string' && imageRow.url.trim()) {
+        return imageRow.url;
+    }
+
+    if (imageRow.storage_path) {
+        const { data } = supabase
+            .storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(imageRow.storage_path);
+
+        return data?.publicUrl || '';
+    }
+
+    return '';
+}
+
 function mapDbCarToUi(car) {
+    const orderedImages = [...(car.imagens || [])].sort(
+        (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)
+    );
+
     return {
         id: String(car.car_id),
         marca: car.marca,
@@ -58,16 +83,26 @@ function mapDbCarToUi(car) {
         ano: car.ano,
         preco: Number(car.preco),
         combustivel: formatCombustivelFromDb(car.combustivel),
-caixa: formatTransmissaoFromDb(car.transmissao),
+        caixa: formatTransmissaoFromDb(car.transmissao),
         quilometros: car.quilometros,
         potencia: car.cavalos,
         cilindrada: car.cilindrada,
         cor: car.cor,
+        portas: car.portas ?? null,
+        lugares: car.lugares ?? null,
         estado: formatEstadoFromDb(car.estado),
         destaque: car.destaque ?? false,
         descricao: car.descricao,
         equipamentos: car.equipamentos ?? [],
-        imagens: (car.imagens || []).map(img => img.url)
+        imagens: orderedImages
+            .map(resolveImageUrl)
+            .filter(Boolean),
+        imagensMeta: orderedImages.map(img => ({
+            imageId: img.image_id,
+            storagePath: img.storage_path ?? null,
+            ordem: img.ordem ?? 0,
+            url: resolveImageUrl(img)
+        }))
     };
 }
 
@@ -111,8 +146,8 @@ function mapUiCarToDb(car) {
         quilometros: car.quilometros,
         cavalos: car.potencia,
         cilindrada: car.cilindrada ?? 0,
-        portas: car.portas ?? 5,
-        lugares: car.lugares ?? 5,
+        portas: Number.isInteger(car.portas) ? car.portas : null,
+        lugares: Number.isInteger(car.lugares) ? car.lugares : null,
         cor: car.cor,
         estado: formatEstadoToDb(car.estado),
         descricao: car.descricao,
@@ -120,6 +155,30 @@ function mapUiCarToDb(car) {
         equipamentos: car.equipamentos ?? []
     };
 }
+
+// ===================================
+// Update Read Status da Mensagem
+// ===================================
+
+export async function updateMessageReadStatus(messageId, isRead) {
+    const payload = {
+        lida: isRead,
+        lida_em: isRead ? new Date().toISOString() : null
+    };
+
+    const { error } = await supabase
+        .from('mensagens')
+        .update(payload)
+        .eq('message_id', messageId);
+
+    if (error) {
+        console.error('Erro ao atualizar estado da mensagem:', error);
+        return false;
+    }
+
+    return true;
+}
+
 
 // ===================================
 // Queries principais
@@ -131,8 +190,10 @@ export async function getAllCars() {
         .select(`
             *,
             imagens (
-                image_id,
-                url
+            image_id,
+            url,
+            storage_path,
+            ordem
             )
         `)
         .order('car_id', { ascending: false });
@@ -151,8 +212,10 @@ export async function getCar(id) {
         .select(`
             *,
             imagens (
-                image_id,
-                url
+            image_id,
+            url,
+            storage_path,
+            ordem
             )
         `)
         .eq('car_id', Number(id))
@@ -172,8 +235,10 @@ export async function getFeaturedCars() {
         .select(`
             *,
             imagens (
-                image_id,
-                url
+            image_id,
+            url,
+            storage_path,
+            ordem
             )
         `)
         .eq('destaque', true)

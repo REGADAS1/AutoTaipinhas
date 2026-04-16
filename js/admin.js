@@ -8,66 +8,58 @@ import {
     deleteCar,
     formatPrice,
     getMessages,
-    markMessageAsRead,
+    updateMessageReadStatus,
     deleteMessage
 } from './data.js';
+
+import {
+    requireAdminOrRedirect,
+    ADMIN_LOGIN_ROUTE
+} from './admin-access.js';
 
 // ===================================
 // Painel de Administração
 // ===================================
 
-let selectedImages = [];
-let existingImages = [];
+const STORAGE_BUCKET = 'car-images';
+const MAX_IMAGE_SIZE_BYTES = 6 * 1024 * 1024;
+
+let selectedImages = []; // [{ file, previewUrl }]
+let existingImages = []; // [{ imageId, storagePath, ordem, url }]
 let adminMessages = [];
 
 document.addEventListener('DOMContentLoaded', async function () {
-    const isAuthenticated = await checkAuthentication();
-    if (!isAuthenticated) return;
+    const adminUser = await requireAdminOrRedirect();
+    if (!adminUser) return;
 
-    bindLogout();
     initNavigation();
+    initAdminActions();
+    initCarManagement();
+    initAdminDashboard();
     initCarForm();
     initImageUpload();
-    initCarManagement();
-
-    document.getElementById('refreshMessagesBtn')?.addEventListener('click', loadMessages);
     initMessagesActions();
-    await initAdminDashboard();
+    bindMessagesRefresh();
+    bindLogout();
+    setCarYearMax();
+    bindCleanupOnUnload();
 });
 
-// Expor funções para o HTML (onclick)
-window.goToSection = goToSection;
-window.editCar = editCar;
-window.confirmDeleteCar = confirmDeleteCar;
-window.resetForm = resetForm;
 
-// ===================================
-// Autenticação
-// ===================================
+function bindMessagesRefresh() {
+    const refreshBtn = document.getElementById('refreshMessagesBtn');
+    if (!refreshBtn) return;
 
-async function checkAuthentication() {
-    try {
-        const { data, error } = await supabase.auth.getSession();
+    refreshBtn.addEventListener('click', async () => {
+        await loadMessages();
+    });
+}
 
-        if (error) {
-            console.error('Erro ao verificar sessão:', error);
-            window.location.href = 'admin-login.html';
-            return false;
-        }
+function setCarYearMax() {
+    const carAnoInput = document.getElementById('carAno');
+    if (!carAnoInput) return;
 
-        const session = data?.session;
-
-        if (!session) {
-            window.location.href = 'admin-login.html';
-            return false;
-        }
-
-        return true;
-    } catch (err) {
-        console.error('Erro inesperado ao verificar autenticação:', err);
-        window.location.href = 'admin-login.html';
-        return false;
-    }
+    carAnoInput.max = String(new Date().getFullYear() + 1);
 }
 
 function bindLogout() {
@@ -86,10 +78,46 @@ function bindLogout() {
                 return;
             }
 
-            window.location.href = 'admin-login.html';
+            window.location.href = ADMIN_LOGIN_ROUTE;
         } catch (err) {
             console.error('Erro inesperado no logout:', err);
             showMessage('Ocorreu um erro ao terminar a sessão.', 'error');
+        }
+    });
+}
+
+
+function initAdminActions() {
+    document.addEventListener('click', async (e) => {
+        const sectionTrigger = e.target.closest('[data-go-section]');
+        if (sectionTrigger) {
+            e.preventDefault();
+            const sectionName = sectionTrigger.dataset.goSection;
+            if (sectionName) {
+                await goToSection(sectionName);
+            }
+            return;
+        }
+
+        const adminActionBtn = e.target.closest('[data-admin-action]');
+        if (!adminActionBtn) return;
+
+        const action = adminActionBtn.dataset.adminAction;
+        const carId = adminActionBtn.dataset.carId;
+
+        if (action === 'edit-car' && carId) {
+            await editCar(carId);
+            return;
+        }
+
+        if (action === 'delete-car' && carId) {
+            await confirmDeleteCar(carId);
+            return;
+        }
+
+        if (action === 'reset-car-form') {
+            resetForm();
+            return;
         }
     });
 }
@@ -225,10 +253,22 @@ async function loadCarsTable() {
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-icon btn-edit" onclick="editCar('${car.id}')" title="Editar">
+                            <button
+                                type="button"
+                                class="btn-icon btn-edit"
+                                data-admin-action="edit-car"
+                                data-car-id="${car.id}"
+                                title="Editar"
+                            >
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button class="btn-icon btn-delete" onclick="confirmDeleteCar('${car.id}')" title="Eliminar">
+                            <button
+                                type="button"
+                                class="btn-icon btn-delete"
+                                data-admin-action="delete-car"
+                                data-car-id="${car.id}"
+                                title="Eliminar"
+                            >
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -261,6 +301,114 @@ function filterCarsTable(searchTerm) {
 // Upload e Preview de Imagens
 // ===================================
 
+function clearSelectedPreviewUrls() {
+    selectedImages.forEach(image => {
+        if (image?.previewUrl) {
+            URL.revokeObjectURL(image.previewUrl);
+        }
+    });
+}
+
+function getImagePreviewSrc(image) {
+    if (!image) return '';
+
+    if (typeof image === 'string') return image;
+    if (image.previewUrl) return image.previewUrl;
+    if (image.url) return image.url;
+
+    return '';
+}
+
+function sanitizeFileName(fileName) {
+    const extension = fileName.includes('.')
+        ? fileName.split('.').pop().toLowerCase()
+        : 'jpg';
+
+    const baseName = fileName.replace(/\.[^/.]+$/, '');
+
+    const safeBaseName = baseName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9-_]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .toLowerCase() || 'imagem';
+
+    return {
+        extension,
+        safeBaseName
+    };
+}
+
+async function uploadSelectedImagesToStorage(carId) {
+    const uploadedRows = [];
+
+    for (const [index, image] of selectedImages.entries()) {
+        const { extension, safeBaseName } = sanitizeFileName(image.file.name);
+        const filePath = `cars/${carId}/${Date.now()}-${index}-${safeBaseName}.${extension}`;
+
+        const { error: uploadError } = await supabase
+            .storage
+            .from(STORAGE_BUCKET)
+            .upload(filePath, image.file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            throw uploadError;
+        }
+
+        const { data } = supabase
+            .storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(filePath);
+
+        uploadedRows.push({
+            car_id: Number(carId),
+            storage_path: filePath,
+            url: data.publicUrl,
+            ordem: index
+        });
+    }
+
+    return uploadedRows;
+}
+
+async function cleanupUploadedFiles(uploadedRows) {
+    const paths = (uploadedRows || [])
+        .map(row => row.storage_path)
+        .filter(Boolean);
+
+    if (!paths.length) return;
+
+    const { error } = await supabase
+        .storage
+        .from(STORAGE_BUCKET)
+        .remove(paths);
+
+    if (error) {
+        console.error('Erro ao limpar uploads recentes do Storage:', error);
+    }
+}
+
+async function removeStoredImages(images) {
+    const paths = (images || [])
+        .map(image => image.storagePath)
+        .filter(Boolean);
+
+    if (!paths.length) return;
+
+    const { error } = await supabase
+        .storage
+        .from(STORAGE_BUCKET)
+        .remove(paths);
+
+    if (error) {
+        throw error;
+    }
+}
+
 function initImageUpload() {
     const imageInput = document.getElementById('carImagens');
     if (!imageInput) return;
@@ -270,47 +418,38 @@ function initImageUpload() {
 
 function handleImageSelection(event) {
     const files = Array.from(event.target.files || []);
-    const previewContainer = document.getElementById('imagePreviewContainer');
 
+    clearSelectedPreviewUrls();
     selectedImages = [];
-    if (previewContainer) previewContainer.innerHTML = '';
 
     if (!files.length) {
         renderImagePreviews(existingImages);
         return;
     }
 
-    let processedCount = 0;
+    const invalidFile = files.find(file => !file.type.startsWith('image/'));
+    if (invalidFile) {
+        showFormMessage('Só podes selecionar ficheiros de imagem.', 'error');
+        event.target.value = '';
+        renderImagePreviews(existingImages);
+        return;
+    }
 
-    files.forEach(file => {
-        if (!file.type.startsWith('image/')) {
-            processedCount++;
-            if (processedCount === files.length) {
-                renderImagePreviews(selectedImages.length ? selectedImages : existingImages);
-            }
-            return;
-        }
+    const oversizedFile = files.find(file => file.size > MAX_IMAGE_SIZE_BYTES);
+    if (oversizedFile) {
+        showFormMessage('Cada imagem deve ter no máximo 6 MB.', 'error');
+        event.target.value = '';
+        renderImagePreviews(existingImages);
+        return;
+    }
 
-        const reader = new FileReader();
+    selectedImages = files.map(file => ({
+        file,
+        previewUrl: URL.createObjectURL(file)
+    }));
 
-        reader.onload = function (e) {
-            selectedImages.push(e.target.result);
-            processedCount++;
-
-            if (processedCount === files.length) {
-                renderImagePreviews(selectedImages);
-            }
-        };
-
-        reader.onerror = function () {
-            processedCount++;
-            if (processedCount === files.length) {
-                renderImagePreviews(selectedImages.length ? selectedImages : existingImages);
-            }
-        };
-
-        reader.readAsDataURL(file);
-    });
+    hideFormMessage();
+    renderImagePreviews(selectedImages);
 }
 
 function renderImagePreviews(images) {
@@ -319,17 +458,23 @@ function renderImagePreviews(images) {
 
     previewContainer.innerHTML = '';
 
-    images.forEach((img, index) => {
+    images.forEach((image, index) => {
+        const src = getImagePreviewSrc(image);
+        if (!src) return;
+
         const previewItem = document.createElement('div');
         previewItem.className = 'image-preview-item';
-        previewItem.innerHTML = `<img src="${img}" alt="Imagem ${index + 1}">`;
+        previewItem.innerHTML = `<img src="${src}" alt="Imagem ${index + 1}">`;
         previewContainer.appendChild(previewItem);
     });
 }
 
 function loadExistingImages(images) {
     existingImages = Array.isArray(images) ? images : [];
+
+    clearSelectedPreviewUrls();
     selectedImages = [];
+
     renderImagePreviews(existingImages);
 }
 
@@ -359,6 +504,8 @@ async function editCar(carId) {
         document.getElementById('carPotencia').value = car.potencia ?? '';
         document.getElementById('carCilindrada').value = car.cilindrada ?? '';
         document.getElementById('carCor').value = car.cor ?? '';
+        document.getElementById('carPortas').value = car.portas ?? '';
+        document.getElementById('carLugares').value = car.lugares ?? '';
         document.getElementById('carEstado').value = car.estado ?? '';
         document.getElementById('carDescricao').value = car.descricao ?? '';
         document.getElementById('carEquipamentos').value = Array.isArray(car.equipamentos)
@@ -367,7 +514,7 @@ async function editCar(carId) {
         document.getElementById('carImagens').value = '';
         document.getElementById('carDestaque').checked = Boolean(car.destaque);
 
-        loadExistingImages(car.imagens || []);
+        loadExistingImages(car.imagensMeta || []);
         hideFormMessage();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -399,6 +546,16 @@ async function confirmDeleteCar(carId) {
 
         if (!deleted) {
             showMessage('Não foi possível eliminar o carro.', 'error');
+            return;
+        }
+
+        try {
+            await removeStoredImages(car.imagensMeta || []);
+        } catch (storageCleanupError) {
+            console.error('Erro ao remover imagens do Storage após eliminar carro:', storageCleanupError);
+            showMessage('O carro foi eliminado, mas algumas imagens ficaram no Storage.', 'error');
+            await loadCarsTable();
+            await updateDashboardStats();
             return;
         }
 
@@ -439,6 +596,8 @@ async function saveCarForm() {
         const cilindradaValue = document.getElementById('carCilindrada').value;
         const cilindrada = cilindradaValue ? parseInt(cilindradaValue, 10) : null;
         const cor = document.getElementById('carCor').value.trim();
+        const portas = parseInt(document.getElementById('carPortas').value, 10);
+        const lugares = parseInt(document.getElementById('carLugares').value, 10);
         const estado = document.getElementById('carEstado').value;
         const descricao = document.getElementById('carDescricao').value.trim();
         const equipamentosText = document.getElementById('carEquipamentos').value.trim();
@@ -453,6 +612,8 @@ async function saveCarForm() {
             !caixa ||
             Number.isNaN(quilometros) ||
             Number.isNaN(potencia) ||
+            Number.isNaN(portas) ||
+            Number.isNaN(lugares) ||
             !cor ||
             !estado ||
             !descricao
@@ -466,10 +627,16 @@ async function saveCarForm() {
             .map(e => e.trim())
             .filter(Boolean);
 
-        const imagens = selectedImages.length > 0 ? selectedImages : existingImages;
+        const hasNewSelectedImages = selectedImages.length > 0;
+        const hasExistingImages = existingImages.length > 0;
 
-        if (!imagens.length) {
+        if (!carId && !hasNewSelectedImages) {
             showFormMessage('É necessário adicionar pelo menos uma imagem.', 'error');
+            return;
+        }
+
+        if (carId && !hasNewSelectedImages && !hasExistingImages) {
+            showFormMessage('É necessário manter ou adicionar pelo menos uma imagem.', 'error');
             return;
         }
 
@@ -484,6 +651,8 @@ async function saveCarForm() {
             potencia,
             cilindrada,
             cor,
+            portas,
+            lugares,
             estado,
             descricao,
             equipamentos,
@@ -501,17 +670,6 @@ async function saveCarForm() {
             }
 
             savedCarId = carId;
-
-            const { error: deleteImagesError } = await supabase
-                .from('imagens')
-                .delete()
-                .eq('car_id', Number(carId));
-
-            if (deleteImagesError) {
-                console.error('Erro ao limpar imagens antigas:', deleteImagesError);
-                showFormMessage('O carro foi atualizado, mas houve erro ao atualizar as imagens.', 'error');
-                return;
-            }
         } else {
             const newCar = await addCar(carData);
 
@@ -523,19 +681,44 @@ async function saveCarForm() {
             savedCarId = newCar.id;
         }
 
-        const imageRows = imagens.map(url => ({
-            car_id: Number(savedCarId),
-            url
-        }));
+        if (hasNewSelectedImages) {
+            const uploadedRows = await uploadSelectedImagesToStorage(savedCarId);
 
-        const { error: imageInsertError } = await supabase
-            .from('imagens')
-            .insert(imageRows);
+            const { error: imageInsertError } = await supabase
+                .from('imagens')
+                .insert(uploadedRows);
 
-        if (imageInsertError) {
-            console.error('Erro ao guardar imagens:', imageInsertError);
-            showFormMessage('O carro foi guardado, mas houve erro ao guardar as imagens.', 'error');
-            return;
+            if (imageInsertError) {
+                await cleanupUploadedFiles(uploadedRows);
+                console.error('Erro ao guardar metadados das imagens:', imageInsertError);
+                showFormMessage('O carro foi guardado, mas houve erro ao registar as imagens.', 'error');
+                return;
+            }
+
+            const oldImageIds = existingImages
+                .map(image => image.imageId)
+                .filter(Boolean);
+
+            if (oldImageIds.length) {
+                const { error: deleteOldDbRowsError } = await supabase
+                    .from('imagens')
+                    .delete()
+                    .in('image_id', oldImageIds);
+
+                if (deleteOldDbRowsError) {
+                    console.error('Erro ao remover registos antigos das imagens:', deleteOldDbRowsError);
+                    showFormMessage('As novas imagens foram guardadas, mas as antigas ainda ficaram associadas ao carro.', 'error');
+                    return;
+                }
+            }
+
+            try {
+                await removeStoredImages(existingImages);
+            } catch (storageCleanupError) {
+                console.error('Erro ao remover imagens antigas do Storage:', storageCleanupError);
+                showFormMessage('As novas imagens foram guardadas, mas as antigas não foram removidas do Storage.', 'error');
+                return;
+            }
         }
 
         showFormMessage(
@@ -562,6 +745,7 @@ function resetForm() {
     document.getElementById('carId').value = '';
     document.getElementById('carFormTitle').textContent = 'Adicionar Novo Carro';
 
+    clearSelectedPreviewUrls();
     selectedImages = [];
     existingImages = [];
 
@@ -652,48 +836,58 @@ async function loadMessages() {
 
     list.innerHTML = `<div class="loading-state">A carregar mensagens...</div>`;
 
-    adminMessages = await getMessages();
-    console.log('Mensagens carregadas:', adminMessages);
+    try {
+        adminMessages = await getMessages();
 
-    if (!adminMessages.length) {
-        list.innerHTML = `<div class="empty-state">Ainda não existem mensagens recebidas.</div>`;
-        return;
+        if (!adminMessages.length) {
+            list.innerHTML = `<div class="empty-state">Ainda não existem mensagens recebidas.</div>`;
+            return;
+        }
+
+        list.innerHTML = adminMessages.map(message => `
+            <div class="message-card ${message.lida ? 'read' : 'unread'}">
+                <div class="message-card-header">
+                    <div>
+                        <h3>${escapeHtml(message.nome)}</h3>
+                        <p>${escapeHtml(message.email)}</p>
+                    </div>
+                    <div class="message-status">
+                        ${message.lida
+                ? '<span class="status-badge read">Lida</span>'
+                : '<span class="status-badge unread">Nova</span>'}
+                    </div>
+                </div>
+
+                <div class="message-card-body">
+                    <p><strong>Telefone:</strong> ${escapeHtml(message.telefone)}</p>
+                    <p><strong>Assunto:</strong> ${escapeHtml(normalizeMessageSubject(message.assunto))}</p>
+                    <p><strong>Recebida em:</strong> ${formatMessageDate(message.created_at)}</p>
+                </div>
+
+                <div class="message-card-actions">
+                    <button class="btn btn-primary btn-sm" data-action="view-message" data-id="${message.message_id}">
+                        Ver
+                    </button>
+                    <button
+                        class="btn btn-secondary btn-sm"
+                        data-action="${message.lida ? 'unread-message' : 'read-message'}"
+                        data-id="${message.message_id}"
+                    >
+                        ${message.lida ? 'Marcar como Não Lida' : 'Marcar como Lida'}
+                    </button>
+                    <button class="btn btn-danger btn-sm" data-action="delete-message" data-id="${message.message_id}">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Erro ao carregar mensagens:', error);
+        list.innerHTML = `<div class="empty-state">Não foi possível carregar as mensagens.</div>`;
+        showMessage('Não foi possível carregar as mensagens.', 'error');
     }
-
-    list.innerHTML = adminMessages.map(message => `
-        <div class="message-card ${message.lida ? 'read' : 'unread'}">
-            <div class="message-card-header">
-                <div>
-                    <h3>${escapeHtml(message.nome)}</h3>
-                    <p>${escapeHtml(message.email)}</p>
-                </div>
-                <div class="message-status">
-                    ${message.lida
-            ? '<span class="status-badge read">Lida</span>'
-            : '<span class="status-badge unread">Nova</span>'}
-                </div>
-            </div>
-
-            <div class="message-card-body">
-                <p><strong>Telefone:</strong> ${escapeHtml(message.telefone)}</p>
-                <p><strong>Assunto:</strong> ${escapeHtml(message.assunto)}</p>
-                <p><strong>Recebida em:</strong> ${formatMessageDate(message.created_at)}</p>
-            </div>
-
-            <div class="message-card-actions">
-                <button class="btn btn-primary btn-sm" data-action="view-message" data-id="${message.message_id}">
-                    Ver
-                </button>
-                <button class="btn btn-secondary btn-sm" data-action="read-message" data-id="${message.message_id}">
-                    Marcar como lida
-                </button>
-                <button class="btn btn-danger btn-sm" data-action="delete-message" data-id="${message.message_id}">
-                    Eliminar
-                </button>
-            </div>
-        </div>
-    `).join('');
 }
+
 
 function initMessagesActions() {
     document.addEventListener('click', async (e) => {
@@ -712,13 +906,28 @@ function initMessagesActions() {
             showMessageModal(message);
 
             if (!message.lida) {
-                await markMessageAsRead(messageId);
+                await updateMessageReadStatus(messageId, true);
                 await loadMessages();
             }
         }
 
         if (action === 'read-message') {
-            await markMessageAsRead(messageId);
+            const success = await updateMessageReadStatus(messageId, true);
+            if (!success) {
+                showMessage('Não foi possível marcar a mensagem como lida.', 'error');
+                return;
+            }
+
+            await loadMessages();
+        }
+
+        if (action === 'unread-message') {
+            const success = await updateMessageReadStatus(messageId, false);
+            if (!success) {
+                showMessage('Não foi possível marcar a mensagem como não lida.', 'error');
+                return;
+            }
+
             await loadMessages();
         }
 
@@ -730,6 +939,24 @@ function initMessagesActions() {
             await loadMessages();
         }
     });
+}
+
+function bindCleanupOnUnload() {
+    window.addEventListener('beforeunload', () => {
+        clearSelectedPreviewUrls();
+    });
+}
+
+function normalizeMessageSubject(subject) {
+    const subjectMap = {
+        info: 'Pedido de Informação',
+        visit: 'Agendar Visita',
+        financing: 'Financiamento',
+        trade: 'Retoma',
+        other: 'Outro'
+    };
+
+    return subjectMap[subject] || subject || 'Outro';
 }
 
 function showMessageModal(message) {
@@ -747,7 +974,7 @@ function showMessageModal(message) {
             <div class="custom-modal-content">
                 <p><strong>Email:</strong> ${escapeHtml(message.email)}</p>
                 <p><strong>Telefone:</strong> ${escapeHtml(message.telefone)}</p>
-                <p><strong>Assunto:</strong> ${escapeHtml(message.assunto)}</p>
+                <p><strong>Assunto:</strong> ${escapeHtml(normalizeMessageSubject(message.assunto))}</p>
                 <p><strong>Recebida em:</strong> ${formatMessageDate(message.created_at)}</p>
                 <hr>
                 <p><strong>Mensagem:</strong></p>
@@ -811,7 +1038,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-console.log('%c Admin Panel Loaded ', 'background: #111827; color: #60a5fa; font-size: 16px; font-weight: bold; padding: 8px;');
-console.log('%c Sessão de administração Supabase ativa ', 'background: #16a34a; color: white; font-size: 12px; padding: 5px;');
+
 
 

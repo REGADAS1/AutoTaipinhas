@@ -70,11 +70,7 @@ a {
     text-decoration: none;
 }
 
-.site-logo {
-    height: 100px;
-    width: auto;
-    display: block;
-}
+
 
 
 /* ===================================
@@ -100,7 +96,7 @@ a {
 }
 
 .loader-logo {
-    width: 220px;
+    width: 180px;
     max-width: 70vw;
     height: auto;
     animation: pulseLogo 1s ease-in-out infinite;
@@ -265,9 +261,17 @@ a {
 }
 
 .site-logo {
-    height: 90px;
+    height: 60px;
     width: auto;
     display: block;
+}
+
+.access-logo {
+    display: block;        /* Permite o uso de margens automáticas */
+    margin: 0 auto 10px;   /* Centra horizontalmente e dá 20px de espaço em baixo */
+    max-width: 300px;      /* Define um tamanho maior (ajusta a gosto) */
+    height: auto;          /* Mantém a proporção da imagem */
+    filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); /* Opcional: dá um leve relevo */
 }
 
 .nav-menu {
@@ -1473,13 +1477,16 @@ body.lightbox-open {
 }
 
 .checkbox-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
     cursor: pointer;
+    line-height: 1;
 }
 
-.checkbox-label input {
+.checkbox-label input[type="checkbox"] {
+
+    margin-left: 10px;
     width: auto;
 }
 

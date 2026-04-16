@@ -100,6 +100,14 @@ function displayCarDetails(car) {
                         <span class="spec-label">Cor</span>
                         <span class="spec-value">${escapeHtml(car.cor)}</span>
                     </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Portas</span>
+                        <span class="spec-value">${escapeHtml(String(car.portas ?? '-'))}</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="spec-label">Lugares</span>
+                        <span class="spec-value">${escapeHtml(String(car.lugares ?? '-'))}</span>
+                    </div>
                 </div>
 
                 <div class="contact-buttons">
