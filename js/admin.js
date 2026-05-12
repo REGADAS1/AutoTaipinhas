@@ -22,7 +22,13 @@ import {
 // ===================================
 
 const STORAGE_BUCKET = 'car-images';
-const MAX_IMAGE_SIZE_BYTES = 6 * 1024 * 1024;
+const MAX_IMAGE_UPLOAD_COUNT = 10;
+const MAX_ORIGINAL_IMAGE_SIZE_BYTES = 12 * 1024 * 1024;
+const MAX_COMPRESSED_IMAGE_SIZE_BYTES = 2 * 1024 * 1024;
+const IMAGE_TARGET_SIZE_BYTES = 700 * 1024;
+const IMAGE_MAX_DIMENSION_PX = 1600;
+const IMAGE_QUALITY_START = 0.82;
+const IMAGE_QUALITY_MIN = 0.55;
 
 let selectedImages = []; // [{ file, previewUrl }]
 let existingImages = []; // [{ imageId, storagePath, ordem, url }]
@@ -340,6 +346,80 @@ function sanitizeFileName(fileName) {
     };
 }
 
+async function loadImageElement(file) {
+    const objectUrl = URL.createObjectURL(file);
+
+    try {
+        const image = new Image();
+        image.src = objectUrl;
+        await image.decode();
+        return image;
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
+
+function getScaledImageSize(width, height) {
+    const longestSide = Math.max(width, height);
+
+    if (longestSide <= IMAGE_MAX_DIMENSION_PX) {
+        return { width, height };
+    }
+
+    const scale = IMAGE_MAX_DIMENSION_PX / longestSide;
+
+    return {
+        width: Math.round(width * scale),
+        height: Math.round(height * scale)
+    };
+}
+
+function canvasToBlob(canvas, type, quality) {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+            if (blob) {
+                resolve(blob);
+                return;
+            }
+
+            reject(new Error('Não foi possível comprimir a imagem.'));
+        }, type, quality);
+    });
+}
+
+async function compressImageFile(file) {
+    const image = await loadImageElement(file);
+    const { width, height } = getScaledImageSize(image.naturalWidth, image.naturalHeight);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d', { alpha: false });
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(image, 0, 0, width, height);
+
+    let quality = IMAGE_QUALITY_START;
+    let blob = await canvasToBlob(canvas, 'image/webp', quality);
+
+    while (blob.size > IMAGE_TARGET_SIZE_BYTES && quality > IMAGE_QUALITY_MIN) {
+        quality = Math.max(IMAGE_QUALITY_MIN, quality - 0.08);
+        blob = await canvasToBlob(canvas, 'image/webp', quality);
+    }
+
+    if (blob.size > MAX_COMPRESSED_IMAGE_SIZE_BYTES) {
+        throw new Error(`A imagem "${file.name}" ficou demasiado pesada mesmo depois da compressão.`);
+    }
+
+    const { safeBaseName } = sanitizeFileName(file.name);
+
+    return new File([blob], `${safeBaseName}.webp`, {
+        type: 'image/webp',
+        lastModified: Date.now()
+    });
+}
+
 async function uploadSelectedImagesToStorage(carId) {
     const uploadedRows = [];
 
@@ -351,9 +431,10 @@ async function uploadSelectedImagesToStorage(carId) {
             .storage
             .from(STORAGE_BUCKET)
             .upload(filePath, image.file, {
-                cacheControl: '3600',
-                upsert: false
-            });
+            cacheControl: '31536000',
+            contentType: image.file.type || 'image/webp',
+            upsert: false
+        });
 
         if (uploadError) {
             throw uploadError;
@@ -416,8 +497,9 @@ function initImageUpload() {
     imageInput.addEventListener('change', handleImageSelection);
 }
 
-function handleImageSelection(event) {
-    const files = Array.from(event.target.files || []);
+async function handleImageSelection(event) {
+    const imageInput = event.target;
+    const files = Array.from(imageInput.files || []);
 
     clearSelectedPreviewUrls();
     selectedImages = [];
@@ -427,29 +509,61 @@ function handleImageSelection(event) {
         return;
     }
 
-    const invalidFile = files.find(file => !file.type.startsWith('image/'));
+    if (files.length > MAX_IMAGE_UPLOAD_COUNT) {
+        showFormMessage(`Selecione no máximo ${MAX_IMAGE_UPLOAD_COUNT} imagens por viatura.`, 'error');
+        imageInput.value = '';
+        renderImagePreviews(existingImages);
+        return;
+    }
+
+    const invalidFile = files.find(file => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type));
     if (invalidFile) {
-        showFormMessage('Só podes selecionar ficheiros de imagem.', 'error');
-        event.target.value = '';
+        showFormMessage('Só podes selecionar imagens JPG, PNG ou WebP.', 'error');
+        imageInput.value = '';
         renderImagePreviews(existingImages);
         return;
     }
 
-    const oversizedFile = files.find(file => file.size > MAX_IMAGE_SIZE_BYTES);
+    const oversizedFile = files.find(file => file.size > MAX_ORIGINAL_IMAGE_SIZE_BYTES);
     if (oversizedFile) {
-        showFormMessage('Cada imagem deve ter no máximo 6 MB.', 'error');
-        event.target.value = '';
+        showFormMessage('Cada imagem original deve ter no máximo 12 MB.', 'error');
+        imageInput.value = '';
         renderImagePreviews(existingImages);
         return;
     }
 
-    selectedImages = files.map(file => ({
-        file,
-        previewUrl: URL.createObjectURL(file)
-    }));
+    try {
+        imageInput.disabled = true;
+        showFormMessage('A comprimir imagens...', 'success');
 
-    hideFormMessage();
-    renderImagePreviews(selectedImages);
+        const compressedFiles = [];
+
+        for (const file of files) {
+            const compressedFile = await compressImageFile(file);
+            compressedFiles.push(compressedFile);
+        }
+
+        selectedImages = compressedFiles.map(file => ({
+            file,
+            previewUrl: URL.createObjectURL(file)
+        }));
+
+        const originalTotal = files.reduce((total, file) => total + file.size, 0);
+        const compressedTotal = compressedFiles.reduce((total, file) => total + file.size, 0);
+        const savedPercent = Math.max(0, Math.round((1 - compressedTotal / originalTotal) * 100));
+
+        showFormMessage(`Imagens comprimidas com sucesso. Espaço poupado: ${savedPercent}%.`, 'success');
+        renderImagePreviews(selectedImages);
+    } catch (error) {
+        console.error('Erro ao comprimir imagens:', error);
+        clearSelectedPreviewUrls();
+        selectedImages = [];
+        imageInput.value = '';
+        showFormMessage(error.message || 'Não foi possível comprimir as imagens.', 'error');
+        renderImagePreviews(existingImages);
+    } finally {
+        imageInput.disabled = false;
+    }
 }
 
 function renderImagePreviews(images) {
