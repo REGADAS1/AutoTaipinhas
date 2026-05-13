@@ -30,8 +30,8 @@ const IMAGE_MAX_DIMENSION_PX = 1600;
 const IMAGE_QUALITY_START = 0.82;
 const IMAGE_QUALITY_MIN = 0.55;
 
-let selectedImages = []; // [{ file, previewUrl }]
-let existingImages = []; // [{ imageId, storagePath, ordem, url }]
+let carImages = []; // [{ kind: 'existing'|'new', imageId, storagePath, ordem, url, file, previewUrl }]
+let deletedExistingImages = []; // imagens existentes removidas no formulário, apagadas ao guardar
 let adminMessages = [];
 let carFormInitialSnapshot = '';
 
@@ -217,8 +217,13 @@ function getCarFormSnapshot() {
 
     return JSON.stringify({
         fields,
-        selectedImages: selectedImages.map(image => image?.file?.name || ''),
-        existingImages: existingImages.map(image => image?.imageId || image?.storagePath || image?.url || '')
+        images: carImages.map((image, index) => ({
+            index,
+            kind: image.kind,
+            key: image.imageId || image.storagePath || image.url || image.file?.name || '',
+            fileSize: image.file?.size || null
+        })),
+        deletedExistingImages: deletedExistingImages.map(image => image.imageId || image.storagePath || image.url || '')
     });
 }
 
@@ -376,8 +381,8 @@ function filterCarsTable(searchTerm) {
 // ===================================
 
 function clearSelectedPreviewUrls() {
-    selectedImages.forEach(image => {
-        if (image?.previewUrl) {
+    carImages.forEach(image => {
+        if (image?.kind === 'new' && image.previewUrl) {
             URL.revokeObjectURL(image.previewUrl);
         }
     });
@@ -391,6 +396,14 @@ function getImagePreviewSrc(image) {
     if (image.url) return image.url;
 
     return '';
+}
+
+function getExistingImageItems() {
+    return carImages.filter(image => image.kind === 'existing');
+}
+
+function getNewImageItems() {
+    return carImages.filter(image => image.kind === 'new');
 }
 
 function sanitizeFileName(fileName) {
@@ -488,10 +501,12 @@ async function compressImageFile(file) {
     });
 }
 
-async function uploadSelectedImagesToStorage(carId) {
+async function uploadNewImagesToStorage(carId) {
     const uploadedRows = [];
 
-    for (const [index, image] of selectedImages.entries()) {
+    for (const [index, image] of carImages.entries()) {
+        if (image.kind !== 'new') continue;
+
         const { extension, safeBaseName } = sanitizeFileName(image.file.name);
         const filePath = `cars/${carId}/${Date.now()}-${index}-${safeBaseName}.${extension}`;
 
@@ -499,10 +514,10 @@ async function uploadSelectedImagesToStorage(carId) {
             .storage
             .from(STORAGE_BUCKET)
             .upload(filePath, image.file, {
-            cacheControl: '31536000',
-            contentType: image.file.type || 'image/webp',
-            upsert: false
-        });
+                cacheControl: '31536000',
+                contentType: image.file.type || 'image/webp',
+                upsert: false
+            });
 
         if (uploadError) {
             throw uploadError;
@@ -522,6 +537,44 @@ async function uploadSelectedImagesToStorage(carId) {
     }
 
     return uploadedRows;
+}
+
+async function updateExistingImageOrder(carId) {
+    const updates = carImages
+        .map((image, index) => ({ image, index }))
+        .filter(({ image }) => image.kind === 'existing' && image.imageId);
+
+    for (const { image, index } of updates) {
+        const { error } = await supabase
+            .from('imagens')
+            .update({ ordem: index })
+            .eq('image_id', image.imageId)
+            .eq('car_id', Number(carId));
+
+        if (error) {
+            throw error;
+        }
+    }
+}
+
+async function deleteMarkedExistingImages() {
+    const imageIds = deletedExistingImages
+        .map(image => image.imageId)
+        .filter(Boolean);
+
+    if (imageIds.length) {
+        const { error } = await supabase
+            .from('imagens')
+            .delete()
+            .in('image_id', imageIds);
+
+        if (error) {
+            throw error;
+        }
+    }
+
+    await removeStoredImages(deletedExistingImages);
+    deletedExistingImages = [];
 }
 
 async function cleanupUploadedFiles(uploadedRows) {
@@ -560,27 +613,34 @@ async function removeStoredImages(images) {
 
 function initImageUpload() {
     const imageInput = document.getElementById('carImagens');
-    if (!imageInput) return;
+    const previewContainer = document.getElementById('imagePreviewContainer');
 
-    imageInput.addEventListener('change', handleImageSelection);
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImageSelection);
+    }
+
+    if (previewContainer) {
+        previewContainer.addEventListener('click', handleImagePreviewClick);
+        previewContainer.addEventListener('dragstart', handleImageDragStart);
+        previewContainer.addEventListener('dragover', handleImageDragOver);
+        previewContainer.addEventListener('drop', handleImageDrop);
+        previewContainer.addEventListener('dragend', handleImageDragEnd);
+    }
 }
 
 async function handleImageSelection(event) {
     const imageInput = event.target;
     const files = Array.from(imageInput.files || []);
 
-    clearSelectedPreviewUrls();
-    selectedImages = [];
-
     if (!files.length) {
-        renderImagePreviews(existingImages);
+        renderImagePreviews();
         return;
     }
 
-    if (files.length > MAX_IMAGE_UPLOAD_COUNT) {
-        showFormMessage(`Selecione no máximo ${MAX_IMAGE_UPLOAD_COUNT} imagens por viatura.`, 'error');
+    if (carImages.length + files.length > MAX_IMAGE_UPLOAD_COUNT) {
+        showFormMessage(`Este anúncio pode ter no máximo ${MAX_IMAGE_UPLOAD_COUNT} imagens. Remova algumas imagens antes de adicionar novas.`, 'error');
         imageInput.value = '';
-        renderImagePreviews(existingImages);
+        renderImagePreviews();
         return;
     }
 
@@ -588,7 +648,7 @@ async function handleImageSelection(event) {
     if (invalidFile) {
         showFormMessage('Só podes selecionar imagens JPG, PNG ou WebP.', 'error');
         imageInput.value = '';
-        renderImagePreviews(existingImages);
+        renderImagePreviews();
         return;
     }
 
@@ -596,7 +656,7 @@ async function handleImageSelection(event) {
     if (oversizedFile) {
         showFormMessage('Cada imagem original deve ter no máximo 12 MB.', 'error');
         imageInput.value = '';
-        renderImagePreviews(existingImages);
+        renderImagePreviews();
         return;
     }
 
@@ -611,53 +671,188 @@ async function handleImageSelection(event) {
             compressedFiles.push(compressedFile);
         }
 
-        selectedImages = compressedFiles.map(file => ({
+        const newImages = compressedFiles.map(file => ({
+            kind: 'new',
             file,
             previewUrl: URL.createObjectURL(file)
         }));
+
+        carImages.push(...newImages);
 
         const originalTotal = files.reduce((total, file) => total + file.size, 0);
         const compressedTotal = compressedFiles.reduce((total, file) => total + file.size, 0);
         const savedPercent = Math.max(0, Math.round((1 - compressedTotal / originalTotal) * 100));
 
-        showFormMessage(`Imagens comprimidas com sucesso. Espaço poupado: ${savedPercent}%.`, 'success');
-        renderImagePreviews(selectedImages);
+        showFormMessage(`Imagens adicionadas e comprimidas com sucesso. Espaço poupado: ${savedPercent}%. Pode arrastar para ordenar.`, 'success');
+        imageInput.value = '';
+        renderImagePreviews();
     } catch (error) {
         console.error('Erro ao comprimir imagens:', error);
-        clearSelectedPreviewUrls();
-        selectedImages = [];
         imageInput.value = '';
         showFormMessage(error.message || 'Não foi possível comprimir as imagens.', 'error');
-        renderImagePreviews(existingImages);
+        renderImagePreviews();
     } finally {
         imageInput.disabled = false;
     }
 }
 
-function renderImagePreviews(images) {
+function renderImagePreviews() {
     const previewContainer = document.getElementById('imagePreviewContainer');
     if (!previewContainer) return;
 
     previewContainer.innerHTML = '';
 
-    images.forEach((image, index) => {
+    if (!carImages.length) {
+        previewContainer.innerHTML = `
+            <div class="image-preview-empty">
+                Nenhuma imagem adicionada. A primeira imagem será a foto principal do anúncio.
+            </div>
+        `;
+        return;
+    }
+
+    carImages.forEach((image, index) => {
         const src = getImagePreviewSrc(image);
         if (!src) return;
 
         const previewItem = document.createElement('div');
-        previewItem.className = 'image-preview-item';
-        previewItem.innerHTML = `<img src="${src}" alt="Imagem ${index + 1}">`;
+        previewItem.className = `image-preview-item ${index === 0 ? 'is-cover' : ''}`;
+        previewItem.draggable = true;
+        previewItem.dataset.imageIndex = String(index);
+        previewItem.innerHTML = `
+            <div class="image-preview-thumb">
+                <img src="${escapeHtml(src)}" alt="Imagem ${index + 1}">
+                <span class="image-order-badge">${index === 0 ? 'Principal' : index + 1}</span>
+            </div>
+
+            <div class="image-preview-info">
+                <span>${image.kind === 'new' ? 'Nova foto' : 'Foto guardada'}</span>
+                <small>${index === 0 ? 'Aparece primeiro no anúncio' : 'Arraste para mudar a ordem'}</small>
+            </div>
+
+            <div class="image-preview-actions">
+                <button type="button" class="image-action-btn" data-image-action="move-up" data-image-index="${index}" ${index === 0 ? 'disabled' : ''} title="Subir imagem">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+                <button type="button" class="image-action-btn" data-image-action="move-down" data-image-index="${index}" ${index === carImages.length - 1 ? 'disabled' : ''} title="Descer imagem">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+                <button type="button" class="image-action-btn danger" data-image-action="remove" data-image-index="${index}" title="Eliminar imagem">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+        `;
         previewContainer.appendChild(previewItem);
     });
 }
 
+async function handleImagePreviewClick(event) {
+    const button = event.target.closest('[data-image-action]');
+    if (!button) return;
+
+    const index = Number(button.dataset.imageIndex);
+    if (!Number.isInteger(index) || !carImages[index]) return;
+
+    const action = button.dataset.imageAction;
+
+    if (action === 'move-up') {
+        moveImage(index, index - 1);
+        return;
+    }
+
+    if (action === 'move-down') {
+        moveImage(index, index + 1);
+        return;
+    }
+
+    if (action === 'remove') {
+        await removeImageAtIndex(index);
+    }
+}
+
+function moveImage(fromIndex, toIndex) {
+    if (toIndex < 0 || toIndex >= carImages.length || fromIndex === toIndex) return;
+
+    const [image] = carImages.splice(fromIndex, 1);
+    carImages.splice(toIndex, 0, image);
+    renderImagePreviews();
+}
+
+async function removeImageAtIndex(index) {
+    const image = carImages[index];
+    if (!image) return;
+
+    const confirmed = await showConfirmModal({
+        title: 'Eliminar imagem?',
+        message: 'Esta imagem será removida do anúncio quando guardar o carro.',
+        confirmText: 'Sim, eliminar',
+        cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) return;
+
+    if (image.kind === 'new' && image.previewUrl) {
+        URL.revokeObjectURL(image.previewUrl);
+    }
+
+    if (image.kind === 'existing') {
+        deletedExistingImages.push(image);
+    }
+
+    carImages.splice(index, 1);
+    renderImagePreviews();
+    showFormMessage('Imagem removida. Guarde o carro para confirmar a alteração.', 'success');
+}
+
+function handleImageDragStart(event) {
+    const item = event.target.closest('.image-preview-item');
+    if (!item) return;
+
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', item.dataset.imageIndex);
+    item.classList.add('is-dragging');
+}
+
+function handleImageDragOver(event) {
+    if (event.target.closest('.image-preview-item')) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }
+}
+
+function handleImageDrop(event) {
+    const targetItem = event.target.closest('.image-preview-item');
+    if (!targetItem) return;
+
+    event.preventDefault();
+
+    const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+    const toIndex = Number(targetItem.dataset.imageIndex);
+
+    if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)) return;
+
+    moveImage(fromIndex, toIndex);
+}
+
+function handleImageDragEnd() {
+    document.querySelectorAll('.image-preview-item.is-dragging')
+        .forEach(item => item.classList.remove('is-dragging'));
+}
+
 function loadExistingImages(images) {
-    existingImages = Array.isArray(images) ? images : [];
-
     clearSelectedPreviewUrls();
-    selectedImages = [];
+    carImages = Array.isArray(images)
+        ? images.map(image => ({
+            kind: 'existing',
+            imageId: image.imageId,
+            storagePath: image.storagePath ?? null,
+            ordem: image.ordem ?? 0,
+            url: image.url ?? ''
+        }))
+        : [];
+    deletedExistingImages = [];
 
-    renderImagePreviews(existingImages);
+    renderImagePreviews();
 }
 
 // ===================================
@@ -811,15 +1006,10 @@ async function saveCarForm() {
             .map(e => e.trim())
             .filter(Boolean);
 
-        const hasNewSelectedImages = selectedImages.length > 0;
-        const hasExistingImages = existingImages.length > 0;
+        const hasNewSelectedImages = getNewImageItems().length > 0;
+        const hasAnyImages = carImages.length > 0;
 
-        if (!carId && !hasNewSelectedImages) {
-            showFormMessage('É necessário adicionar pelo menos uma imagem.', 'error');
-            return;
-        }
-
-        if (carId && !hasNewSelectedImages && !hasExistingImages) {
+        if (!hasAnyImages) {
             showFormMessage('É necessário manter ou adicionar pelo menos uma imagem.', 'error');
             return;
         }
@@ -866,7 +1056,7 @@ async function saveCarForm() {
         }
 
         if (hasNewSelectedImages) {
-            const uploadedRows = await uploadSelectedImagesToStorage(savedCarId);
+            const uploadedRows = await uploadNewImagesToStorage(savedCarId);
 
             const { error: imageInsertError } = await supabase
                 .from('imagens')
@@ -878,31 +1068,22 @@ async function saveCarForm() {
                 showFormMessage('O carro foi guardado, mas houve erro ao registar as imagens.', 'error');
                 return;
             }
+        }
 
-            const oldImageIds = existingImages
-                .map(image => image.imageId)
-                .filter(Boolean);
+        try {
+            await updateExistingImageOrder(savedCarId);
+        } catch (orderUpdateError) {
+            console.error('Erro ao atualizar ordem das imagens:', orderUpdateError);
+            showFormMessage('O carro foi guardado, mas houve erro ao atualizar a ordem das imagens.', 'error');
+            return;
+        }
 
-            if (oldImageIds.length) {
-                const { error: deleteOldDbRowsError } = await supabase
-                    .from('imagens')
-                    .delete()
-                    .in('image_id', oldImageIds);
-
-                if (deleteOldDbRowsError) {
-                    console.error('Erro ao remover registos antigos das imagens:', deleteOldDbRowsError);
-                    showFormMessage('As novas imagens foram guardadas, mas as antigas ainda ficaram associadas ao carro.', 'error');
-                    return;
-                }
-            }
-
-            try {
-                await removeStoredImages(existingImages);
-            } catch (storageCleanupError) {
-                console.error('Erro ao remover imagens antigas do Storage:', storageCleanupError);
-                showFormMessage('As novas imagens foram guardadas, mas as antigas não foram removidas do Storage.', 'error');
-                return;
-            }
+        try {
+            await deleteMarkedExistingImages();
+        } catch (imageDeleteError) {
+            console.error('Erro ao eliminar imagens removidas:', imageDeleteError);
+            showFormMessage('O carro foi guardado, mas houve erro ao eliminar algumas imagens.', 'error');
+            return;
         }
 
         showFormMessage(
@@ -930,13 +1111,10 @@ function resetForm() {
     document.getElementById('carFormTitle').textContent = 'Adicionar Novo Carro';
 
     clearSelectedPreviewUrls();
-    selectedImages = [];
-    existingImages = [];
+    carImages = [];
+    deletedExistingImages = [];
 
-    const previewContainer = document.getElementById('imagePreviewContainer');
-    if (previewContainer) {
-        previewContainer.innerHTML = '';
-    }
+    renderImagePreviews();
 
     hideFormMessage();
     setCarFormBaseline();

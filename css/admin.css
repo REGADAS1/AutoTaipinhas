@@ -903,9 +903,129 @@ body.admin-body {
 
 .image-preview-container {
     margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.image-preview-empty {
+    grid-column: 1 / -1;
+    padding: 16px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.image-preview-item {
+    overflow: hidden;
+    border: 1px solid #dbe4ef;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+    cursor: grab;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-preview-item:hover {
+    transform: translateY(-2px);
+    border-color: #3498db;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+}
+
+.image-preview-item.is-cover {
+    border-color: #3498db;
+}
+
+.image-preview-item.is-dragging {
+    opacity: 0.55;
+    cursor: grabbing;
+}
+
+.image-preview-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #e2e8f0;
+}
+
+.image-preview-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-order-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.78);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.image-preview-info {
+    padding: 10px 10px 8px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.image-preview-info span {
+    color: #0f172a;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.image-preview-info small {
+    color: #64748b;
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.image-preview-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 0 10px 10px;
+}
+
+.image-action-btn {
+    min-height: 34px;
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #1e3a5f;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.image-action-btn:hover:not(:disabled) {
+    background: #e8f4ff;
+    border-color: #3498db;
+    color: #1d6fa5;
+}
+
+.image-action-btn.danger:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #ef4444;
+    color: #b91c1c;
+}
+
+.image-action-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .image-preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
 }
 
 /* ===================================
