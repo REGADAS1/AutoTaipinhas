@@ -33,6 +33,7 @@ const IMAGE_QUALITY_MIN = 0.55;
 let selectedImages = []; // [{ file, previewUrl }]
 let existingImages = []; // [{ imageId, storagePath, ordem, url }]
 let adminMessages = [];
+let carFormInitialSnapshot = '';
 
 document.addEventListener('DOMContentLoaded', async function () {
     const adminUser = await requireAdminOrRedirect();
@@ -134,44 +135,111 @@ function initAdminActions() {
 
 function initNavigation() {
     const menuLinks = document.querySelectorAll('.admin-menu a');
-    const sections = document.querySelectorAll('.admin-section');
 
     menuLinks.forEach(link => {
         link.addEventListener('click', async function (e) {
             e.preventDefault();
 
             const sectionName = this.getAttribute('data-section');
-
-            menuLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-
-            sections.forEach(section => {
-                section.classList.remove('active');
-            });
-
-            const targetSection = document.getElementById(`${sectionName}-section`);
-            if (targetSection) {
-                targetSection.classList.add('active');
-
-                if (sectionName === 'dashboard') {
-                    await updateDashboardStats();
-                } else if (sectionName === 'cars') {
-                    await loadCarsTable();
-                } else if (sectionName === 'add-car') {
-                    hideFormMessage();
-                } else if (sectionName === 'messages') {
-                    await loadMessages();
-                }
+            if (sectionName) {
+                await goToSection(sectionName);
             }
         });
     });
 }
 
 async function goToSection(sectionName) {
-    const link = document.querySelector(`[data-section="${sectionName}"]`);
-    if (link) {
-        link.click();
+    const activeSectionName = getActiveSectionName();
+
+    if (activeSectionName === 'add-car' && sectionName !== 'add-car') {
+        const canLeave = await confirmLeaveCarFormIfNeeded();
+        if (!canLeave) return false;
+
+        resetForm();
     }
+
+    if (sectionName === 'add-car') {
+        if (activeSectionName === 'add-car') {
+            const canDiscard = await confirmLeaveCarFormIfNeeded();
+            if (!canDiscard) return false;
+        }
+
+        resetForm();
+    }
+
+    await activateSection(sectionName);
+    return true;
+}
+
+async function activateSection(sectionName) {
+    const menuLinks = document.querySelectorAll('.admin-menu a');
+    const sections = document.querySelectorAll('.admin-section');
+    const targetSection = document.getElementById(`${sectionName}-section`);
+
+    if (!targetSection) return;
+
+    menuLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-section') === sectionName);
+    });
+
+    sections.forEach(section => {
+        section.classList.remove('active');
+    });
+
+    targetSection.classList.add('active');
+
+    if (sectionName === 'dashboard') {
+        await updateDashboardStats();
+    } else if (sectionName === 'cars') {
+        await loadCarsTable();
+    } else if (sectionName === 'add-car') {
+        hideFormMessage();
+    } else if (sectionName === 'messages') {
+        await loadMessages();
+    }
+}
+
+function getActiveSectionName() {
+    const activeSection = document.querySelector('.admin-section.active');
+    return activeSection?.id?.replace('-section', '') || '';
+}
+
+function getCarFormSnapshot() {
+    const form = document.getElementById('carForm');
+    if (!form) return '';
+
+    const fields = Array.from(form.querySelectorAll('input, select, textarea'))
+        .filter(field => field.type !== 'file')
+        .map(field => ({
+            id: field.id,
+            value: field.type === 'checkbox' ? field.checked : field.value
+        }));
+
+    return JSON.stringify({
+        fields,
+        selectedImages: selectedImages.map(image => image?.file?.name || ''),
+        existingImages: existingImages.map(image => image?.imageId || image?.storagePath || image?.url || '')
+    });
+}
+
+function setCarFormBaseline() {
+    carFormInitialSnapshot = getCarFormSnapshot();
+}
+
+function hasCarFormDraft() {
+    const carId = document.getElementById('carId')?.value;
+    return Boolean(carId) || getCarFormSnapshot() !== carFormInitialSnapshot;
+}
+
+async function confirmLeaveCarFormIfNeeded() {
+    if (!hasCarFormDraft()) return true;
+
+    return showConfirmModal({
+        title: 'Sair sem guardar?',
+        message: 'Tem a certeza que quer sair sem guardar? As alterações não guardadas serão perdidas.',
+        confirmText: 'Sim, sair',
+        cancelText: 'Cancelar'
+    });
 }
 
 // ===================================
@@ -604,7 +672,8 @@ async function editCar(carId) {
             return;
         }
 
-        await goToSection('add-car');
+        const movedToForm = await goToSection('add-car');
+        if (!movedToForm) return;
 
         document.getElementById('carFormTitle').textContent = 'Editar Carro';
         document.getElementById('carId').value = car.id;
@@ -629,6 +698,7 @@ async function editCar(carId) {
         document.getElementById('carDestaque').checked = Boolean(car.destaque);
 
         loadExistingImages(car.imagensMeta || []);
+        setCarFormBaseline();
         hideFormMessage();
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -869,6 +939,7 @@ function resetForm() {
     }
 
     hideFormMessage();
+    setCarFormBaseline();
 }
 
 // ===================================
@@ -918,6 +989,69 @@ function hideFormMessage() {
     if (messageDiv) {
         messageDiv.style.display = 'none';
     }
+}
+
+function showConfirmModal({
+    title = 'Confirmar ação',
+    message = 'Tem a certeza?',
+    confirmText = 'Sim',
+    cancelText = 'Cancelar'
+} = {}) {
+    const existing = document.getElementById('confirmModal');
+    if (existing) existing.remove();
+
+    return new Promise(resolve => {
+        const modal = document.createElement('div');
+        modal.id = 'confirmModal';
+        modal.className = 'custom-modal-overlay';
+
+        modal.innerHTML = `
+            <div class="custom-modal custom-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+                <button type="button" class="custom-modal-close" id="cancelConfirmModal" aria-label="Fechar">&times;</button>
+
+                <h2 id="confirmModalTitle">${escapeHtml(title)}</h2>
+                <div class="custom-modal-content">
+                    <p class="custom-modal-message">${escapeHtml(message)}</p>
+                </div>
+
+                <div class="custom-modal-actions">
+                    <button type="button" class="btn btn-outline" id="confirmModalNo">${escapeHtml(cancelText)}</button>
+                    <button type="button" class="btn btn-secondary" id="confirmModalYes">${escapeHtml(confirmText)}</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        let resolved = false;
+
+        const close = (value) => {
+            if (resolved) return;
+            resolved = true;
+            document.removeEventListener('keydown', handleKeydown);
+            modal.remove();
+            resolve(value);
+        };
+
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                close(false);
+            }
+        };
+
+        document.getElementById('confirmModalYes')?.addEventListener('click', () => close(true));
+        document.getElementById('confirmModalNo')?.addEventListener('click', () => close(false));
+        document.getElementById('cancelConfirmModal')?.addEventListener('click', () => close(false));
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                close(false);
+            }
+        });
+
+        document.addEventListener('keydown', handleKeydown);
+        document.getElementById('confirmModalNo')?.focus();
+    });
 }
 
 // ===================================
